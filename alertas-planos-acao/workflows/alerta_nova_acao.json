@@ -1,0 +1,268 @@
+{
+  "name": "Alerta de Nova Acao - Primeira Notificacao (Demo)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-trigger-0001",
+      "name": "Todo dia as 10h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "janela-01",
+              "name": "desde",
+              "value": "={{ $now.minus({ hours: 24 }).toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-janela-0002",
+      "name": "Calcular Janela de Tempo",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://demo.exemplo.dev/api/acoes?criadoApos={{ encodeURIComponent($json.desde) }}&status=Nova&top=500",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-buscar-0003",
+      "name": "Buscar Novas Acoes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Credencial API (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true },
+          "conditions": [
+            {
+              "id": "cond-tem-itens",
+              "leftValue": "={{ ($json.value || []).length }}",
+              "rightValue": 0,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-temitens-0004",
+      "name": "Tem Novos Itens?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.first().json.value || [];\nreturn items\n  .filter(a => a.emailResponsavel && a.emailResponsavel.includes('@'))\n  .map(a => ({ json: a }));"
+      },
+      "id": "node-separar-0005",
+      "name": "Separar Itens",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://demo.exemplo.dev/api/acoes/{{ $json.id }}?select=id,alertaEnviado",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "node-verificar-0006",
+      "name": "Verificar AlertaEnviado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1300, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Credencial API (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true },
+          "conditions": [
+            {
+              "id": "cond-nao-enviado",
+              "leftValue": "={{ $json.alertaEnviado }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "notEquals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-naoenviado-0007",
+      "name": "Ainda nao foi enviado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1520, 200]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "html-01",
+              "name": "htmlBody",
+              "value": "=<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\"></head><body style=\"margin:0;padding:0;background-color:#f2f2f2;font-family:Arial,sans-serif;\"><center><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:600px;background-color:#ffffff;\"><tr><td style=\"background-color:#2b3a55;border-bottom:4px solid #4f86c6;padding:18px 24px;\"><h2 style=\"color:#ffffff;font-size:16px;margin:0;\">Nova Acao Atribuida</h2><p style=\"color:#cfd8e3;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin:6px 0 0 0;\">Portal de Planos de Acao - Empresa Exemplo</p></td></tr><tr><td style=\"padding:28px 32px;\"><p style=\"font-size:16px;color:#333333;margin:0 0 12px 0;\">Ola, <strong>{{ $('Separar Itens').item.json.nomeResponsavel }}</strong>,</p><p style=\"font-size:14px;color:#555555;line-height:1.7;margin:0 0 18px 0;\">Uma nova acao foi atribuida a voce: <strong>{{ $('Separar Itens').item.json.titulo }}</strong>. Acesse o portal para registrar seu plano de acao e definir o prazo.</p><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td style=\"border-radius:6px;background-color:#4f86c6;\"><a href=\"https://demo.exemplo.dev/portal\" target=\"_blank\" style=\"display:inline-block;padding:12px 28px;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:6px;\">Abrir o Portal</a></td></tr></table></td></tr><tr><td style=\"background-color:#f8f9fa;padding:18px 32px;border-top:1px solid #e9ecef;\"><p style=\"margin:0;font-size:11px;color:#aaaaaa;line-height:1.6;\">Mensagem automatica do Portal de Planos de Acao - Empresa Exemplo. Nao responda este e-mail.</p></td></tr></table></center></body></html>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-html-0008",
+      "name": "Preparar HTML",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1740, 120]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Separar Itens').item.json.emailResponsavel }}",
+        "subject": "Voce recebeu uma nova acao - Portal de Planos de Acao",
+        "emailType": "html",
+        "message": "={{ $json.htmlBody }}",
+        "options": {
+          "replyTo": "naoresponda@exemplo.dev"
+        }
+      },
+      "id": "node-email-0009",
+      "name": "Enviar E-mail",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1960, 120],
+      "credentials": {
+        "smtp": {
+          "id": "",
+          "name": "SMTP (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://demo.exemplo.dev/api/acoes/{{ $('Separar Itens').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={ \"alertaEnviado\": true }",
+        "options": {}
+      },
+      "id": "node-marcar-0010",
+      "name": "Marcar AlertaEnviado = true",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2180, 120],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Credencial API (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "node-ignorar-0011",
+      "name": "Ignorar (ja enviado)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1740, 320]
+    },
+    {
+      "parameters": {},
+      "id": "node-semitens-0012",
+      "name": "Sem Novos Itens",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1080, 420]
+    }
+  ],
+  "connections": {
+    "Todo dia as 10h": {
+      "main": [[{ "node": "Calcular Janela de Tempo", "type": "main", "index": 0 }]]
+    },
+    "Calcular Janela de Tempo": {
+      "main": [[{ "node": "Buscar Novas Acoes", "type": "main", "index": 0 }]]
+    },
+    "Buscar Novas Acoes": {
+      "main": [[{ "node": "Tem Novos Itens?", "type": "main", "index": 0 }]]
+    },
+    "Tem Novos Itens?": {
+      "main": [
+        [{ "node": "Separar Itens", "type": "main", "index": 0 }],
+        [{ "node": "Sem Novos Itens", "type": "main", "index": 0 }]
+      ]
+    },
+    "Separar Itens": {
+      "main": [[{ "node": "Verificar AlertaEnviado", "type": "main", "index": 0 }]]
+    },
+    "Verificar AlertaEnviado": {
+      "main": [[{ "node": "Ainda nao foi enviado?", "type": "main", "index": 0 }]]
+    },
+    "Ainda nao foi enviado?": {
+      "main": [
+        [{ "node": "Preparar HTML", "type": "main", "index": 0 }],
+        [{ "node": "Ignorar (ja enviado)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Preparar HTML": {
+      "main": [[{ "node": "Enviar E-mail", "type": "main", "index": 0 }]]
+    },
+    "Enviar E-mail": {
+      "main": [[{ "node": "Marcar AlertaEnviado = true", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

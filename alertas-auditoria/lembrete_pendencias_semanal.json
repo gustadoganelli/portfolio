@@ -1,0 +1,145 @@
+{
+  "name": "Lembrete Semanal de Pendencias de Auditoria",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * 1"
+            }
+          ]
+        },
+        "options": {
+          "timezone": "America/Sao_Paulo"
+        }
+      },
+      "id": "node-schedule-trigger",
+      "name": "Gatilho Agendado (Segunda 10h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.DATA_SOURCE_URL }}/api/pendencias?status=Aberta&limit=5000",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-fetch-pendencias",
+      "name": "Buscar Pendencias Abertas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Credencial API (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agrupa as pendencias por UNIDADE.\n// Cada item da fonte traz: unidade, email do responsavel, nome do responsavel\n// e o link do quadro de tarefas (kanban) onde a pendencia deve ser tratada.\nconst response = $input.first().json;\nconst itens = Array.isArray(response.value) ? response.value : (Array.isArray(response) ? response : []);\n\nif (itens.length === 0) {\n  return [{ json: { temPendencias: false, grupos: [] } }];\n}\n\nconst agrupado = itens.reduce((acc, item) => {\n  const unidade = (item.unidade || 'Desconhecida').toString().trim();\n\n  if (!acc[unidade]) {\n    acc[unidade] = {\n      nomeUnidade: unidade,\n      email: (item.emailResponsavel || '').toString().trim(),\n      nomeResponsavel: (item.nomeResponsavel || 'Responsavel').toString().trim(),\n      linkQuadro: (item.linkQuadro || '').toString().trim(),\n      qtd: 0\n    };\n  }\n  acc[unidade].qtd++;\n  return acc;\n}, {});\n\n// Ignora unidades sem email valido ou sem link do quadro\nconst log = [];\nconst grupos = Object.values(agrupado).filter(g => {\n  if (!g.email.includes('@')) {\n    log.push(`[IGNORADA] Sem email: ${g.nomeUnidade}`);\n    return false;\n  }\n  if (!g.linkQuadro) {\n    log.push(`[IGNORADA] Sem link do quadro: ${g.nomeUnidade}`);\n    return false;\n  }\n  return true;\n});\n\nif (log.length) console.log(log.join('\\n'));\nconsole.log(`[INFO] ${grupos.length} unidade(s) com pendencias em aberto para envio.`);\n\nreturn [{ json: { temPendencias: grupos.length > 0, grupos } }];\n",
+        "mode": "runOnceForAllItems"
+      },
+      "id": "node-code-group",
+      "name": "Agrupar Pendencias por Unidade",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.temPendencias }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "node-if-has-pendencias",
+      "name": "Existem Pendencias?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [920, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Transforma cada grupo (unidade) em um item separado para gerar um e-mail por unidade.\nconst data = $input.first().json;\n\nif (!data || !data.grupos || !data.grupos.length) return [];\n\nreturn data.grupos.map(g => ({\n  json: {\n    nomeUnidade: g.nomeUnidade,\n    email: g.email,\n    linkQuadro: g.linkQuadro,\n    nomeResponsavel: g.nomeResponsavel,\n    qtdPendencias: g.qtd\n  }\n}));\n",
+        "mode": "runOnceForAllItems"
+      },
+      "id": "node-code-split",
+      "name": "Preparar Emails por Unidade",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1160, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "auditoria@demo.exemplo.dev",
+        "toEmail": "={{ $json.email }}",
+        "ccEmail": "supervisao@demo.exemplo.dev",
+        "subject": "=Pendencias de auditoria em aberto - {{ $json.nomeUnidade }}",
+        "html": "=<!DOCTYPE html>\n<html lang=\"pt-BR\">\n<head><meta charset=\"UTF-8\"></head>\n<body style=\"margin:0;padding:0;background-color:#f0f2f5;font-family:Arial,Helvetica,sans-serif;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#f0f2f5;\">\n    <tr><td align=\"center\" style=\"padding:32px 16px;\">\n      <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;\">\n        <tr>\n          <td style=\"background-color:#B03A2E;padding:28px 32px;border-radius:8px 8px 0 0;\">\n            <p style=\"margin:0;font-size:11px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:#F5B7B1;\">Controles Internos - Empresa Exemplo</p>\n            <h1 style=\"margin:10px 0 0;font-size:21px;font-weight:bold;color:#ffffff;\">Pendencias de Auditoria em Aberto</h1>\n          </td>\n        </tr>\n        <tr>\n          <td style=\"background-color:#ffffff;padding:36px 32px;\">\n            <p style=\"margin:0 0 14px;font-size:16px;color:#2C3E50;\">Ola, <strong>{{ $json.nomeResponsavel }}</strong>,</p>\n            <p style=\"margin:0 0 20px;font-size:15px;color:#555555;line-height:1.75;\">\n              Identificamos <strong style=\"color:#B03A2E;\">{{ $json.qtdPendencias }} pendencia(s) de auditoria em aberto</strong>\n              na unidade <strong>{{ $json.nomeUnidade }}</strong> que ainda aguardam tratamento e registro de acoes corretivas.\n            </p>\n            <p style=\"margin:0 0 28px;font-size:15px;color:#555555;line-height:1.75;\">Pedimos que acesse o quadro de tarefas da sua unidade para verificar as pendencias e registrar as providencias adotadas.</p>\n            <table cellpadding=\"0\" cellspacing=\"0\">\n              <tr>\n                <td style=\"border-radius:6px;background-color:#B03A2E;\">\n                  <a href=\"{{ $json.linkQuadro }}\" target=\"_blank\" style=\"display:inline-block;padding:14px 32px;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:6px;\">Acessar Quadro da Unidade</a>\n                </td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n        <tr>\n          <td style=\"background-color:#F8F9FA;padding:20px 32px;border-top:1px solid #E9ECEF;border-radius:0 0 8px 8px;\">\n            <p style=\"margin:0;font-size:12px;color:#AAAAAA;line-height:1.6;\">Este e um lembrete automatico do sistema de Controles Internos - Empresa Exemplo.<br>Nao responda a este e-mail.</p>\n          </td>\n        </tr>\n      </table>\n    </td></tr>\n  </table>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "node-send-email",
+      "name": "Enviar Lembrete por E-mail",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1400, 300],
+      "credentials": {
+        "smtp": {
+          "id": "",
+          "name": "Credencial SMTP (placeholder)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Gatilho Agendado (Segunda 10h)": {
+      "main": [[{ "node": "Buscar Pendencias Abertas", "type": "main", "index": 0 }]]
+    },
+    "Buscar Pendencias Abertas": {
+      "main": [[{ "node": "Agrupar Pendencias por Unidade", "type": "main", "index": 0 }]]
+    },
+    "Agrupar Pendencias por Unidade": {
+      "main": [[{ "node": "Existem Pendencias?", "type": "main", "index": 0 }]]
+    },
+    "Existem Pendencias?": {
+      "main": [
+        [{ "node": "Preparar Emails por Unidade", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Preparar Emails por Unidade": {
+      "main": [[{ "node": "Enviar Lembrete por E-mail", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": [{ "name": "Auditoria" }, { "name": "Pendencias" }],
+  "meta": { "templateCredsSetupCompleted": false, "instanceId": "" },
+  "pinData": {}
+}

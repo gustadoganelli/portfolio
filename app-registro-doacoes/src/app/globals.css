@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --fundo: #f8fafc;
+}
+
+html,
+body {
+  background: var(--fundo);
+  color: #0f172a;
+}
+
+/* Inputs/labels padrão do formulário */
+.campo-label {
+  @apply mb-1 block text-sm font-medium text-slate-700;
+}
+.campo-input {
+  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm
+         shadow-sm outline-none transition focus:border-marca-500 focus:ring-2 focus:ring-marca-500/30
+         disabled:cursor-not-allowed disabled:bg-slate-100;
+}
+.campo-erro {
+  @apply mt-1 text-xs font-medium text-red-600;
+}
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold
+         transition disabled:cursor-not-allowed disabled:opacity-60;
+}
+.btn-primario {
+  @apply btn bg-marca-600 text-white hover:bg-marca-700;
+}
+.btn-secundario {
+  @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+}
+.btn-perigo {
+  @apply btn border border-red-200 bg-red-50 text-red-700 hover:bg-red-100;
+}

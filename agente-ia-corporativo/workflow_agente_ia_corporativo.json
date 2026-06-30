@@ -1,0 +1,470 @@
+{
+  "name": "Agente IA Corporativo (Demo)",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "id": "node-chat-trigger",
+      "name": "Receber Mensagem (Chat)",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [-360, 300],
+      "webhookId": "demo-chat-webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agente-corporativo",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-trigger",
+      "name": "Receber Mensagem (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-360, 520],
+      "webhookId": "demo-corporativo-webhook"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "node-llm",
+      "name": "Modelo de Linguagem",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [-160, 520],
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": "Credencial LLM (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId || 'sessao-demo' }}",
+        "contextWindowLength": 10
+      },
+      "id": "node-memory",
+      "name": "Memoria da Conversa",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [-20, 520]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput || $json.body.mensagem }}",
+        "options": {
+          "systemMessage": "Voce e um assistente corporativo generico. Interprete a solicitacao do colaborador em linguagem natural e responda SEMPRE em JSON valido com os campos:\n{\n  \"executar_acao\": true|false,\n  \"acao\": \"abrir_solicitacao | consultar_minhas | consultar_status | atualizar_cadastro | desconhecida\",\n  \"resposta\": \"texto amigavel para o usuario\",\n  \"dados\": { \"protocolo\": \"\", \"solicitante\": \"\", \"departamento\": \"\", \"categoria\": \"\", \"descricao\": \"\", \"prioridade\": \"\" }\n}\nSe faltar informacao essencial, defina executar_acao=false e peca o que falta no campo resposta. Use apenas dados ficticios de exemplo (ex: Empresa Exemplo, joao@exemplo.com, Sala 1)."
+        }
+      },
+      "id": "node-agent",
+      "name": "Agente Interpretador",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [120, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrai e valida o JSON retornado pelo agente\nconst raw = $input.first().json.output || $input.first().json.text || '{}';\nlet parsed;\ntry {\n  const match = raw.match(/\\{[\\s\\S]*\\}/);\n  parsed = JSON.parse(match ? match[0] : raw);\n} catch (e) {\n  parsed = { executar_acao: false, acao: 'desconhecida', resposta: 'Nao consegui interpretar a solicitacao. Pode reformular?', dados: {} };\n}\nreturn [{ json: parsed }];"
+      },
+      "id": "node-parse",
+      "name": "Interpretar Saida do Agente",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [340, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "version": 2 },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.executar_acao }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "node-if",
+      "name": "Executar Acao?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [560, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "output",
+              "value": "={{ $json.resposta }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-return-info",
+      "name": "Responder (so informacao)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [780, 460]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "version": 2 },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.acao }}",
+                    "rightValue": "abrir_solicitacao",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "abrir_solicitacao"
+            },
+            {
+              "conditions": {
+                "options": { "version": 2 },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.acao }}",
+                    "rightValue": "consultar_minhas",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "consultar_minhas"
+            },
+            {
+              "conditions": {
+                "options": { "version": 2 },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.acao }}",
+                    "rightValue": "consultar_status",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "consultar_status"
+            },
+            {
+              "conditions": {
+                "options": { "version": 2 },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.acao }}",
+                    "rightValue": "atualizar_cadastro",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "atualizar_cadastro"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-switch",
+      "name": "Rotear por Acao",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [780, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normaliza os dados para gravacao (valores ficticios de exemplo)\nconst d = $input.first().json.dados || {};\nconst agora = new Date().toISOString();\nconst protocolo = d.protocolo || ('REQ-' + Math.floor(1000 + Math.random() * 9000));\nreturn [{ json: {\n  protocolo,\n  solicitante: d.solicitante || 'joao@exemplo.com',\n  departamento: d.departamento || 'Operacoes',\n  categoria: d.categoria || 'Geral',\n  descricao: d.descricao || 'Solicitacao de exemplo',\n  prioridade: d.prioridade || 'Media',\n  status: 'Aberta',\n  criado_em: agora\n} }];"
+      },
+      "id": "node-normalize",
+      "name": "Normalizar Dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 60]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": "tabela_solicitacoes",
+        "columns": {
+          "value": {
+            "protocolo": "={{ $json.protocolo }}",
+            "solicitante": "={{ $json.solicitante }}",
+            "departamento": "={{ $json.departamento }}",
+            "categoria": "={{ $json.categoria }}",
+            "descricao": "={{ $json.descricao }}",
+            "prioridade": "={{ $json.prioridade }}",
+            "status": "={{ $json.status }}",
+            "criado_em": "={{ $json.criado_em }}"
+          }
+        }
+      },
+      "id": "node-save",
+      "name": "Gravar Solicitacao",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [1220, 60]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://demo.exemplo.dev/api/tarefas",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"titulo\": \"Nova solicitacao {{ $json.protocolo }}\",\n  \"quadro\": \"quadro-demo\",\n  \"responsavel\": \"agente-demo\"\n}",
+        "options": {}
+      },
+      "id": "node-task-create",
+      "name": "Criar Tarefa (Gestor de Tarefas)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 60],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "API Gestor de Tarefas (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "output",
+              "value": "=Solicitacao {{ $('Normalizar Dados').item.json.protocolo }} aberta com sucesso. Voce sera avisado quando houver atualizacao.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-return-open",
+      "name": "Responder (Abertura)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1660, 60]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": "tabela_solicitacoes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "solicitante",
+              "condition": "eq",
+              "keyValue": "={{ $json.dados.solicitante || 'joao@exemplo.com' }}"
+            }
+          ]
+        }
+      },
+      "id": "node-query-mine",
+      "name": "Consultar Minhas Solicitacoes",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [1000, 240]
+    },
+    {
+      "parameters": {
+        "jsCode": "const itens = $input.all().map(i => i.json);\nif (!itens.length) return [{ json: { output: 'Voce nao possui solicitacoes registradas.' } }];\nconst linhas = itens.map(r => `- ${r.protocolo}: ${r.categoria} (${r.status})`).join('\\n');\nreturn [{ json: { output: `Suas solicitacoes:\\n${linhas}` } }];"
+      },
+      "id": "node-format-mine",
+      "name": "Formatar Minhas Solicitacoes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1220, 240]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": "tabela_solicitacoes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "protocolo",
+              "condition": "eq",
+              "keyValue": "={{ $json.dados.protocolo }}"
+            }
+          ]
+        }
+      },
+      "id": "node-query-status",
+      "name": "Consultar Status",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [1000, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first() ? $input.first().json : null;\nif (!r || !r.protocolo) return [{ json: { output: 'Protocolo nao encontrado.' } }];\nreturn [{ json: { output: `Solicitacao ${r.protocolo} esta com status: ${r.status}. Categoria: ${r.categoria}. Prioridade: ${r.prioridade}.` } }];"
+      },
+      "id": "node-format-status",
+      "name": "Formatar Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1220, 420]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": "tabela_cadastro",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "={{ $json.dados.solicitante || 'joao@exemplo.com' }}"
+            }
+          ]
+        },
+        "columns": {
+          "value": {
+            "departamento": "={{ $json.dados.departamento || 'Operacoes' }}",
+            "atualizado_em": "={{ $now.toISO() }}"
+          }
+        }
+      },
+      "id": "node-update-cad",
+      "name": "Atualizar Cadastro",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [1000, 600]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "u1",
+              "name": "output",
+              "value": "Cadastro atualizado com sucesso.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-return-update",
+      "name": "Responder (Atualizacao)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1220, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "id": "node-respond-webhook",
+      "name": "Resposta Final (Webhook)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1880, 360]
+    }
+  ],
+  "connections": {
+    "Receber Mensagem (Chat)": {
+      "main": [[{ "node": "Agente Interpretador", "type": "main", "index": 0 }]]
+    },
+    "Receber Mensagem (Webhook)": {
+      "main": [[{ "node": "Agente Interpretador", "type": "main", "index": 0 }]]
+    },
+    "Modelo de Linguagem": {
+      "ai_languageModel": [[{ "node": "Agente Interpretador", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Memoria da Conversa": {
+      "ai_memory": [[{ "node": "Agente Interpretador", "type": "ai_memory", "index": 0 }]]
+    },
+    "Agente Interpretador": {
+      "main": [[{ "node": "Interpretar Saida do Agente", "type": "main", "index": 0 }]]
+    },
+    "Interpretar Saida do Agente": {
+      "main": [[{ "node": "Executar Acao?", "type": "main", "index": 0 }]]
+    },
+    "Executar Acao?": {
+      "main": [
+        [{ "node": "Rotear por Acao", "type": "main", "index": 0 }],
+        [{ "node": "Responder (so informacao)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Rotear por Acao": {
+      "main": [
+        [{ "node": "Normalizar Dados", "type": "main", "index": 0 }],
+        [{ "node": "Consultar Minhas Solicitacoes", "type": "main", "index": 0 }],
+        [{ "node": "Consultar Status", "type": "main", "index": 0 }],
+        [{ "node": "Atualizar Cadastro", "type": "main", "index": 0 }]
+      ]
+    },
+    "Normalizar Dados": {
+      "main": [[{ "node": "Gravar Solicitacao", "type": "main", "index": 0 }]]
+    },
+    "Gravar Solicitacao": {
+      "main": [[{ "node": "Criar Tarefa (Gestor de Tarefas)", "type": "main", "index": 0 }]]
+    },
+    "Criar Tarefa (Gestor de Tarefas)": {
+      "main": [[{ "node": "Responder (Abertura)", "type": "main", "index": 0 }]]
+    },
+    "Responder (Abertura)": {
+      "main": [[{ "node": "Resposta Final (Webhook)", "type": "main", "index": 0 }]]
+    },
+    "Consultar Minhas Solicitacoes": {
+      "main": [[{ "node": "Formatar Minhas Solicitacoes", "type": "main", "index": 0 }]]
+    },
+    "Formatar Minhas Solicitacoes": {
+      "main": [[{ "node": "Resposta Final (Webhook)", "type": "main", "index": 0 }]]
+    },
+    "Consultar Status": {
+      "main": [[{ "node": "Formatar Status", "type": "main", "index": 0 }]]
+    },
+    "Formatar Status": {
+      "main": [[{ "node": "Resposta Final (Webhook)", "type": "main", "index": 0 }]]
+    },
+    "Atualizar Cadastro": {
+      "main": [[{ "node": "Responder (Atualizacao)", "type": "main", "index": 0 }]]
+    },
+    "Responder (Atualizacao)": {
+      "main": [[{ "node": "Resposta Final (Webhook)", "type": "main", "index": 0 }]]
+    },
+    "Responder (so informacao)": {
+      "main": [[{ "node": "Resposta Final (Webhook)", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templatecredsSetupCompleted": false
+  },
+  "tags": [
+    { "name": "demo" },
+    { "name": "portfolio" },
+    { "name": "ia" }
+  ]
+}

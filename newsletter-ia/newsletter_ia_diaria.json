@@ -1,0 +1,369 @@
+{
+  "name": "Newsletter IA Diaria (Demo)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Configuracao necessaria\n**1. API de IA** - configure uma credencial HTTP (placeholder neste demo).\n**2. E-mail (SMTP)** - configure a credencial de envio no no final.\n\n**Horario:** 07h00 todos os dias (`0 7 * * *`).\n\n**Fluxo:** Agendamento -> 6 feeds RSS -> Merge -> Filtrar/Pontuar -> Gerar Newsletter (IA) -> Validar HTML -> Enviar por e-mail.\n\n> Projeto de demonstracao. Fontes, e-mails e credenciais sao ficticios.",
+        "height": 320,
+        "width": 460,
+        "color": 4
+      },
+      "id": "note-config",
+      "name": "Config Necessaria",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -360
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 7 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-schedule",
+      "name": "Agendamento Diario 7h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://blog.exemplo.dev/rss",
+        "options": {}
+      },
+      "id": "node-rss-1",
+      "name": "RSS - Blog Exemplo",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        120,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://noticias.exemplo.dev/feed",
+        "options": {}
+      },
+      "id": "node-rss-2",
+      "name": "RSS - Portal Noticias",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        120,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://automacao.exemplo.dev/rss",
+        "options": {}
+      },
+      "id": "node-rss-3",
+      "name": "RSS - Automacao Exemplo",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        120,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://financas.exemplo.dev/feed",
+        "options": {}
+      },
+      "id": "node-rss-4",
+      "name": "RSS - Financas Exemplo",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://pesquisa.exemplo.dev/rss",
+        "options": {}
+      },
+      "id": "node-rss-5",
+      "name": "RSS - Pesquisa Exemplo",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        120,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://startups.exemplo.dev/feed",
+        "options": {}
+      },
+      "id": "node-rss-6",
+      "name": "RSS - Startups Exemplo",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        120,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "numberInputs": 6
+      },
+      "id": "node-merge",
+      "name": "Merge - Combinar Feeds",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        400,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Coleta todos os itens vindos dos feeds RSS combinados pelo Merge.\nconst allItems = $input.all();\nconst now = new Date();\nconst cutoff48h = new Date(now.getTime() - 48 * 60 * 60 * 1000);\nconst cutoff72h = new Date(now.getTime() - 72 * 60 * 60 * 1000);\n\n// Regras para identificar a fonte e a categoria a partir do link/conteudo.\n// (fontes 100% ficticias - apenas demonstracao)\nconst sourceRules = [\n  { match: ['blog.exemplo.dev'],      source: 'Blog Exemplo',        category: 'Tecnologia e negocios' },\n  { match: ['noticias.exemplo.dev'],  source: 'Portal Noticias',     category: 'Mercado e investimentos' },\n  { match: ['automacao.exemplo.dev'], source: 'Automacao Exemplo',   category: 'Automacao empresarial' },\n  { match: ['financas.exemplo.dev'],  source: 'Financas Exemplo',    category: 'Financas e gestao' },\n  { match: ['pesquisa.exemplo.dev'],  source: 'Pesquisa Exemplo',    category: 'Pesquisa e inovacao' },\n  { match: ['startups.exemplo.dev'],  source: 'Startups Exemplo',    category: 'Mercado e investimentos' },\n];\n\nfunction textOf(value) {\n  return String(value || '').toLowerCase();\n}\n\n// Classifica cada item em uma fonte/categoria conhecida ou generica.\nfunction classify(item) {\n  const link = item.link || item.guid || '';\n  const haystack = [link, item.title, item.contentSnippet, item.summary, item.description]\n    .map(textOf).join(' ');\n  for (const rule of sourceRules) {\n    if (rule.match.some(function (pattern) { return haystack.includes(pattern); })) {\n      return { source: rule.source, category: rule.category, link };\n    }\n  }\n  try {\n    return { source: new URL(link).hostname.replace(/^www\\./, ''), category: 'Fonte monitorada', link };\n  } catch (e) {\n    return { source: 'Fonte monitorada', category: 'Fonte monitorada', link };\n  }\n}\n\nfunction parseDate(j) {\n  for (const f of [j.pubDate, j.isoDate, j.date, j.published]) {\n    if (f) {\n      const d = new Date(f);\n      if (!isNaN(d.getTime())) return d;\n    }\n  }\n  return new Date(0);\n}\n\n// Pontua cada noticia por utilidade para um publico de gestores.\nfunction relevanceScore(item) {\n  const text = [item.title, item.contentSnippet, item.summary, item.description, item._category]\n    .map(textOf).join(' ');\n  const strong = ['enterprise', 'corporativo', 'negocio', 'financas', 'gestao', 'automacao',\n    'workflow', 'agente', 'investimento', 'rodada', 'aquisicao', 'produtividade', 'roi'];\n  const medium = ['ia', 'inteligencia artificial', 'dados', 'nuvem', 'integracao', 'api', 'plataforma'];\n  const weak = ['game', 'gadget', 'rumor', 'celebridade', 'meme', 'fofoca'];\n  let score = 0;\n  strong.forEach(function (t) { if (text.includes(t)) score += 4; });\n  medium.forEach(function (t) { if (text.includes(t)) score += 2; });\n  weak.forEach(function (t) { if (text.includes(t)) score -= 5; });\n  return score;\n}\n\n// Enriquecimento: data, fonte, categoria, link e score por item.\nconst candidates = allItems.map(function (item) {\n  const json = item.json || {};\n  const classified = classify(json);\n  const enriched = Object.assign({}, json, {\n    _date: parseDate(json),\n    _source: classified.source,\n    _category: classified.category,\n    _link: classified.link,\n  });\n  enriched._score = relevanceScore(enriched);\n  return enriched;\n});\n\n// Janela de recencia com fallback progressivo se houver poucas noticias.\nlet filtered = candidates.filter(function (i) { return i._date >= cutoff48h; });\nif (filtered.length < 8) filtered = candidates.filter(function (i) { return i._date >= cutoff72h; });\nif (filtered.length < 5) filtered = candidates.slice().sort(function (a, b) { return b._date - a._date; }).slice(0, 30);\n\n// Remove duplicatas por titulo/link.\nconst seen = new Set();\nconst unique = filtered.filter(function (i) {\n  const titleKey = String(i.title || '').toLowerCase().trim().substring(0, 90);\n  const linkKey = String(i._link || i.link || '').replace(/[?#].*$/, '').toLowerCase();\n  const key = titleKey || linkKey;\n  if (!key || seen.has(key)) return false;\n  seen.add(key);\n  return true;\n}).sort(function (a, b) { return (b._score - a._score) || (b._date - a._date); });\n\n// Seleciona as melhores noticias e monta o bloco de contexto para a IA.\nconst selected = unique.slice(0, 20);\n\nconst noticias = selected.map(function (item, idx) {\n  const title = String(item.title || 'Sem titulo').trim();\n  const link = item._link || item.link || item.guid || '';\n  const source = item._source;\n  const category = item._category;\n  const date = item._date.getTime() > 0 ? item._date.toLocaleDateString('pt-BR') : 'Data nao informada';\n  const summary = String(item.contentSnippet || item.summary || item.description || '')\n    .replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim().substring(0, 400);\n  return '[' + (idx + 1) + ']\\n' +\n    'CATEGORIA: ' + category + '\\n' +\n    'TITULO: ' + title + '\\n' +\n    'FONTE: ' + source + '\\n' +\n    'DATA: ' + date + '\\n' +\n    'URL: ' + link + '\\n' +\n    'RESUMO: ' + summary + '\\n---';\n}).join('\\n\\n');\n\n// Metadados da edicao.\nconst dataFormatada = now.toLocaleDateString('pt-BR', {\n  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',\n}).replace(/^./, function (c) { return c.toUpperCase(); });\n\nconst inicio = new Date('2026-01-01');\nconst edicao = Math.max(1, Math.floor((now - inicio) / 86400000) + 1);\nconst assunto = '[Boletim IA] ' +\n  now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) +\n  ' | Ed. ' + edicao;\n\n// Prompt de sistema: define papel e formato de saida (HTML puro).\nconst promptSistema = 'Voce e um editor executivo especialista em tecnologia, inteligencia ' +\n  'artificial, automacao e gestao. Escreve em portugues brasileiro claro e objetivo. ' +\n  'REGRA ABSOLUTA: retorne APENAS HTML puro completo iniciando com <!DOCTYPE html>. ' +\n  'Proibido markdown, comentarios ou texto fora do HTML.';\n\n// Prompt de usuario: instrucoes de secoes, design e as noticias do dia.\nconst promptUsuario =\n  'Hoje e ' + dataFormatada + '. Edicao numero ' + edicao + '.\\n\\n' +\n  'Crie uma NEWSLETTER EXECUTIVA em portugues brasileiro, em HTML completo para e-mail.\\n\\n' +\n  'SECOES ESPERADAS:\\n' +\n  '1. DESTAQUE DO DIA - a noticia mais relevante para gestores.\\n' +\n  '2. AUTOMACAO EMPRESARIAL - workflows, agentes e integracoes.\\n' +\n  '3. FINANCAS E GESTAO - planejamento, ERP e processos.\\n' +\n  '4. MERCADO E INVESTIMENTOS - rodadas, aquisicoes e movimentos relevantes.\\n' +\n  '5. ANALISE DO DIA - sintese editorial de 3 a 5 linhas.\\n\\n' +\n  'REGRAS DE DESIGN (compativel com clientes de e-mail):\\n' +\n  '- Retorne HTML completo iniciando com <!DOCTYPE html> e <html lang=\"pt-BR\">.\\n' +\n  '- Use <body style=\"margin:0;padding:0;background-color:#f2f2f2;\">.\\n' +\n  '- Container central com tabela: max-width 600px, fundo branco, fonte Arial.\\n' +\n  '- Use apenas estilos inline. Nao use flexbox, grid, box-shadow ou linear-gradient.\\n' +\n  '- Titulos de noticias devem ser links clicaveis com a URL real.\\n' +\n  '- Cor de acento #2563EB e textos em tons de cinza.\\n\\n' +\n  'REGRAS DE CONTEUDO:\\n' +\n  '- Use APENAS as noticias fornecidas abaixo para fatos e numeros.\\n' +\n  '- No maximo 2 noticias por secao (exceto destaque e analise).\\n' +\n  '- Omita secoes sem noticias relevantes.\\n' +\n  '- Tom executivo, direto e analitico.\\n\\n' +\n  'NOTICIAS DO DIA (use APENAS estas ' + selected.length + ' noticias):\\n\\n' + noticias;\n\nreturn [{\n  json: {\n    prompt_sistema: promptSistema,\n    prompt_usuario: promptUsuario,\n    assunto_email: assunto,\n    data_hoje: dataFormatada,\n    numero_edicao: edicao,\n    total_noticias: selected.length,\n  },\n}];"
+      },
+      "id": "node-code-filtrar",
+      "name": "Code - Filtrar e Formatar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.exemplo.dev/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ model: 'modelo-ia-exemplo', messages: [ { role: 'system', content: $json.prompt_sistema }, { role: 'user', content: $json.prompt_usuario } ], temperature: 0.3, max_tokens: 8000 }) }}",
+        "options": {}
+      },
+      "id": "node-http-ia",
+      "name": "IA - Gerar Newsletter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        80
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Credencial IA (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrai o HTML retornado pela API de IA, tratando formatos comuns de resposta.\nconst response = $input.first().json;\nlet html = '';\n\nif (response.choices && response.choices[0] && response.choices[0].message) {\n  html = response.choices[0].message.content || '';\n} else if (response.message && response.message.content) {\n  html = response.message.content;\n} else if (response.error) {\n  throw new Error('Erro da API de IA: ' + JSON.stringify(response.error));\n}\n\n// Remove eventuais cercas de markdown que a IA possa ter adicionado.\nhtml = String(html || '')\n  .replace(/^```html\\s*/i, '')\n  .replace(/^```\\s*/i, '')\n  .replace(/\\s*```\\s*$/, '')\n  .trim();\n\n// Se a resposta foi cortada por limite de tokens, falha de forma explicita.\nconst finishReason = response.choices && response.choices[0] ? response.choices[0].finish_reason : '';\nif (finishReason === 'length') {\n  throw new Error('Resposta cortada por limite de tokens. Aumente max_tokens e execute novamente.');\n}\n\n// Validacoes basicas de estrutura e compatibilidade com clientes de e-mail.\nconst erros = [];\nif (!html || html.length < 500) erros.push('HTML vazio ou curto demais');\nif (!/^<!DOCTYPE html>/i.test(html)) erros.push('HTML precisa iniciar com <!DOCTYPE html>');\nif (!/<html[\\s>]/i.test(html)) erros.push('Tag <html> ausente');\nif (!/<body[\\s>]/i.test(html)) erros.push('Tag <body> ausente');\nif (/```/.test(html)) erros.push('Markdown/code fence encontrado no HTML');\nif (/linear-gradient\\s*\\(/i.test(html)) erros.push('linear-gradient nao recomendado para e-mail');\nif (/display\\s*:\\s*(flex|grid)/i.test(html)) erros.push('flexbox/grid nao recomendado para e-mail');\nif (!/href\\s*=\\s*[\"']/i.test(html)) erros.push('Nenhum link clicavel encontrado');\n\n// Fecha tags principais caso a resposta tenha vindo levemente incompleta.\nif (!/<\\/html>\\s*$/i.test(html) && /<body[\\s>]/i.test(html) && html.length > 1500) {\n  if (!/<\\/body>/i.test(html)) html += '\\n</body>';\n  html += '\\n</html>';\n}\n\nif (erros.length) {\n  throw new Error('HTML invalido para envio: ' + erros.join('; '));\n}\n\nconst codeData = $('Code - Filtrar e Formatar').first().json;\n\nreturn [{\n  json: {\n    html_newsletter: html,\n    assunto_email: codeData.assunto_email || 'Boletim Executivo de IA',\n    html_validado: true,\n  },\n}];"
+      },
+      "id": "node-code-extrair",
+      "name": "Code - Extrair e Validar HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "boletim@exemplo.dev",
+        "toEmail": "joao@exemplo.com, maria@exemplo.com",
+        "subject": "={{ $json.assunto_email }}",
+        "emailFormat": "html",
+        "html": "={{ $json.html_newsletter }}",
+        "options": {}
+      },
+      "id": "node-email",
+      "name": "Enviar Newsletter (E-mail)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        80
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "",
+          "name": "SMTP (placeholder)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Agendamento Diario 7h": {
+      "main": [
+        [
+          {
+            "node": "RSS - Blog Exemplo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Portal Noticias",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Automacao Exemplo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Financas Exemplo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Pesquisa Exemplo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS - Startups Exemplo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS - Blog Exemplo": {
+      "main": [
+        [
+          {
+            "node": "Merge - Combinar Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS - Portal Noticias": {
+      "main": [
+        [
+          {
+            "node": "Merge - Combinar Feeds",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "RSS - Automacao Exemplo": {
+      "main": [
+        [
+          {
+            "node": "Merge - Combinar Feeds",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "RSS - Financas Exemplo": {
+      "main": [
+        [
+          {
+            "node": "Merge - Combinar Feeds",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "RSS - Pesquisa Exemplo": {
+      "main": [
+        [
+          {
+            "node": "Merge - Combinar Feeds",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "RSS - Startups Exemplo": {
+      "main": [
+        [
+          {
+            "node": "Merge - Combinar Feeds",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Merge - Combinar Feeds": {
+      "main": [
+        [
+          {
+            "node": "Code - Filtrar e Formatar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Filtrar e Formatar": {
+      "main": [
+        [
+          {
+            "node": "IA - Gerar Newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA - Gerar Newsletter": {
+      "main": [
+        [
+          {
+            "node": "Code - Extrair e Validar HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Extrair e Validar HTML": {
+      "main": [
+        [
+          {
+            "node": "Enviar Newsletter (E-mail)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "tags": []
+}

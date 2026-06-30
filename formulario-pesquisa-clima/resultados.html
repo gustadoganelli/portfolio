@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Resultados — Pesquisa de Clima (Demo)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f2f2f2; padding: 32px 16px; }
+
+    .wrapper { max-width: 860px; margin: 0 auto; }
+
+    /* CABEÇALHO */
+    .header { background-color: #2b3a55; border-bottom: 4px solid #2f80ed; }
+    .header-inner { display: flex; align-items: center; padding: 18px 24px; gap: 14px; }
+    .header-logo {
+      width: 52px; height: 52px; flex-shrink: 0; background: rgba(255,255,255,0.12);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px;
+    }
+    .header-text { flex: 1; }
+    .header-text h1 { color: #fff; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .header-text p { color: #cdd6e6; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; }
+    .header-user { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .header-user span {
+      color: #cdd6e6; font-size: 10px; white-space: nowrap; max-width: 160px;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .btn-logout {
+      background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.45);
+      border-radius: 20px; padding: 4px 14px; font-size: 10px; font-weight: 600;
+      cursor: pointer; font-family: Arial, sans-serif; text-transform: uppercase;
+      letter-spacing: 0.5px; white-space: nowrap; transition: background 0.15s;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.15); }
+
+    /* BANNER DEMO */
+    .demo-banner {
+      background: #eaf2fe; border-left: 4px solid #2f80ed; padding: 14px 18px;
+      font-size: 12px; color: #444; line-height: 1.6; margin: 16px 0;
+    }
+    .demo-banner strong { color: #2f80ed; }
+
+    /* KPI CARDS */
+    .kpi-row { display: flex; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+    .kpi-card { flex: 1; min-width: 140px; background: #fff; border-left: 4px solid #2f80ed; padding: 16px 18px; }
+    .kpi-card .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #2f80ed; margin-bottom: 6px; }
+    .kpi-card .kpi-value { font-size: 28px; font-weight: 900; color: #333; }
+    .kpi-card .kpi-sub { font-size: 11px; color: #888; margin-top: 3px; }
+
+    /* SEÇÕES */
+    .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: #2f80ed; margin: 28px 0 12px; }
+
+    /* GRID DE GRÁFICOS */
+    .charts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 12px; }
+    .chart-card { background: #fff; border-left: 4px solid #2f80ed; padding: 16px 18px; }
+    .chart-card .chart-title { font-size: 12px; font-weight: 700; color: #333; margin-bottom: 12px; line-height: 1.4; }
+    .chart-card .q-badge {
+      display: inline-block; background: #2f80ed; color: #fff; font-size: 10px; font-weight: 700;
+      border-radius: 50%; width: 20px; height: 20px; text-align: center; line-height: 20px; margin-right: 6px; flex-shrink: 0;
+    }
+    .chart-wrap { position: relative; height: 140px; }
+
+    /* TABELA */
+    .table-card { background: #fff; border-left: 4px solid #2f80ed; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead tr { background: #f9f9f9; }
+    th {
+      text-align: left; padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: #2f80ed; border-bottom: 2px solid #2f80ed; white-space: nowrap;
+    }
+    td { padding: 9px 12px; color: #444; border-bottom: 1px solid #eee; white-space: nowrap; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #eaf2fe; }
+
+    .badge-resp { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .badge-nunca          { background: #fee2e2; color: #991b1b; }
+    .badge-raramente      { background: #fef3c7; color: #92400e; }
+    .badge-as_vezes       { background: #e0f2fe; color: #075985; }
+    .badge-frequentemente { background: #d1fae5; color: #065f46; }
+    .badge-sempre         { background: #dcfce7; color: #14532d; }
+
+    /* BOTÕES */
+    .actions { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+    .btn {
+      background: #2f80ed; color: #fff; border: none; border-radius: 5px; padding: 9px 20px;
+      font-size: 12px; font-weight: 700; cursor: pointer; font-family: Arial, sans-serif; transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-outline { background: #fff; color: #2f80ed; border: 1.5px solid #2f80ed; }
+
+    /* FILTROS */
+    .filter-bar {
+      background: #fff; border-left: 4px solid #2f80ed; padding: 14px 18px; margin-bottom: 16px;
+      display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #888; }
+    .filter-group select {
+      padding: 7px 10px; font-size: 12px; font-family: Arial, sans-serif; border: 1.5px solid #ddd;
+      border-radius: 6px; color: #333; background: #fff; cursor: pointer; min-width: 150px; transition: border-color 0.15s;
+    }
+    .filter-group select:focus { outline: none; border-color: #2f80ed; }
+    .filter-group select:disabled { background: #f5f5f5; color: #aaa; cursor: not-allowed; }
+    .filter-active-badge {
+      display: none; background: #eaf2fe; color: #2f80ed; font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 12px; border: 1px solid #2f80ed; align-self: flex-end; margin-bottom: 1px;
+    }
+    .filter-active-badge.show { display: inline-block; }
+
+    /* LOADING / ERRO */
+    .state-msg { background: #fff; border-left: 4px solid #2f80ed; padding: 24px; text-align: center; color: #666; font-size: 13px; }
+
+    /* RODAPÉ */
+    .footer { background: #fff; padding: 14px 24px 20px; border-top: 1px solid #ddd; text-align: center; margin-top: 12px; }
+    .footer span { display: block; color: #aaa; font-size: 11px; margin-bottom: 3px; }
+
+    @media (max-width: 520px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- CABEÇALHO -->
+  <div class="header">
+    <div class="header-inner">
+      <div class="header-logo">📊</div>
+      <div class="header-text">
+        <h1>Resultados — Pesquisa de Clima Organizacional</h1>
+        <p>Recursos Humanos &nbsp;|&nbsp; Painel Interno</p>
+      </div>
+      <div class="header-user">
+        <span id="userEmail">—</span>
+        <button class="btn-logout" onclick="logout()">Sair</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BANNER DEMO -->
+  <div class="demo-banner">
+    <strong>Projeto de demonstração.</strong> Os números abaixo são gerados aleatoriamente
+    a cada carregamento (dados fictícios). Respostas enviadas pelo formulário demo nesta
+    máquina também aparecem aqui.
+  </div>
+
+  <!-- AÇÕES -->
+  <div class="actions">
+    <button class="btn" onclick="loadData()">🔄 Atualizar dados</button>
+    <button class="btn btn-outline" onclick="exportCSV()">⬇️ Exportar CSV</button>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <span class="filter-label">Unidade</span>
+      <select id="filterUnidade" onchange="applyFilters()">
+        <option value="">Todas as unidades</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Setor</span>
+      <select id="filterSetor" onchange="applyFilters()" disabled>
+        <option value="">Selecione a unidade primeiro</option>
+      </select>
+    </div>
+    <span class="filter-active-badge" id="filterBadge">● Filtro ativo</span>
+    <button class="btn btn-outline" style="padding:7px 14px;" onclick="clearFilters()">✕ Limpar</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi-card">
+      <div class="kpi-label">Total de respostas</div>
+      <div class="kpi-value" id="kpiTotal">—</div>
+      <div class="kpi-sub">formulários enviados</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Resposta + frequente</div>
+      <div class="kpi-value" id="kpiTop">—</div>
+      <div class="kpi-sub" id="kpiTopSub">geral</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Última resposta</div>
+      <div class="kpi-value" id="kpiLast" style="font-size:18px; padding-top:6px;">—</div>
+      <div class="kpi-sub">data de envio</div>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS -->
+  <div class="section-label">📊 Distribuição por Pergunta</div>
+  <div class="charts-grid" id="chartsGrid">
+    <div class="state-msg" id="loadingMsg">⏳ Carregando dados…</div>
+  </div>
+
+  <!-- TABELA DETALHADA -->
+  <div class="section-label">📋 Respostas Detalhadas</div>
+  <div class="table-card">
+    <table id="detailTable">
+      <thead><tr id="tableHead"></tr></thead>
+      <tbody id="tableBody">
+        <tr><td colspan="14" style="text-align:center;color:#999;padding:20px;">Aguardando dados…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- RODAPÉ -->
+  <div class="footer">
+    <span>Empresa Exemplo &nbsp;—&nbsp; Recursos Humanos &nbsp;|&nbsp; Pesquisa de Clima</span>
+    <span id="footerDate" style="color:#ccc;font-size:10px;"></span>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script src="config.js"></script>
+<script src="mock-data.js"></script>
+<script>
+  // ============================================================
+  // FONTE DE DADOS (DEMO)
+  // Aqui os dados vêm de um gerador fictício (mock-data.js).
+  // Para usar um backend real, substitua loadData() por uma
+  // chamada à sua API usando os placeholders abaixo.
+  //   API_URL = '{{API_URL}}'
+  //   API_KEY = '{{API_KEY}}'
+  // ============================================================
+
+  // ── PROTEÇÃO DE ROTA (demo) ─────────────────────────────────
+  if (sessionStorage.getItem('demo_logado') !== '1') {
+    window.location.href = 'login.html';
+  }
+  document.getElementById('userEmail').textContent =
+    sessionStorage.getItem('demo_email') || 'admin@exemplo.com';
+
+  function logout() {
+    sessionStorage.removeItem('demo_logado');
+    sessionStorage.removeItem('demo_email');
+    window.location.href = 'login.html';
+  }
+
+  const OPS    = OPCOES.map(o => o.value);
+  const LABELS = OPCOES.map(o => o.label);
+  const CORES  = ['#fecaca', '#fde68a', '#bae6fd', '#a7f3d0', '#86efac'];
+  const BORDAS = ['#f87171', '#fbbf24', '#38bdf8', '#34d399', '#16a34a'];
+
+  let allData = [];
+  let chartInstances = [];
+
+  document.getElementById('footerDate').textContent =
+    'Atualizado em ' + new Date().toLocaleString('pt-BR');
+
+  // Preenche filtro de unidades a partir do config
+  (function initFilters() {
+    const sel = document.getElementById('filterUnidade');
+    UNIDADES.forEach(u => sel.appendChild(new Option(u, u)));
+  })();
+
+  // Monta cabeçalho da tabela dinamicamente
+  (function initTableHead() {
+    const head = document.getElementById('tableHead');
+    let html = '<th>#</th><th>Data/Hora</th><th>Unidade</th><th>Setor</th>';
+    for (let i = 1; i <= PERGUNTAS.length; i++) html += `<th>P${i}</th>`;
+    head.innerHTML = html;
+  })();
+
+  // ── CARREGAR DADOS ──────────────────────────────────────────
+  function loadData() {
+    document.getElementById('chartsGrid').innerHTML = '<div class="state-msg">⏳ Carregando dados…</div>';
+    // Demo: gera dados fictícios + respostas locais do formulário
+    allData = carregarDadosDemo();
+    applyFilters();
+  }
+
+  // ── FILTROS ─────────────────────────────────────────────────
+  function populateFilterSetores(unidade) {
+    const sel = document.getElementById('filterSetor');
+    sel.innerHTML = '';
+    if (!unidade || !SETORES[unidade]) {
+      sel.appendChild(new Option('Selecione a unidade primeiro', ''));
+      sel.disabled = true;
+      return;
+    }
+    sel.appendChild(new Option('Todos os setores', ''));
+    SETORES[unidade].forEach(s => sel.appendChild(new Option(s, s)));
+    sel.disabled = false;
+  }
+
+  function applyFilters() {
+    const unidade = document.getElementById('filterUnidade').value;
+    const setor   = document.getElementById('filterSetor').value;
+    populateFilterSetores(unidade);
+    if (setor) document.getElementById('filterSetor').value = setor;
+    let filtered = allData;
+    if (unidade) filtered = filtered.filter(r => r.unidade === unidade);
+    if (setor)   filtered = filtered.filter(r => r.setor === setor);
+    document.getElementById('filterBadge').classList.toggle('show', !!(unidade || setor));
+    renderAll(filtered);
+  }
+
+  function clearFilters() {
+    document.getElementById('filterUnidade').value = '';
+    populateFilterSetores('');
+    document.getElementById('filterBadge').classList.remove('show');
+    renderAll(allData);
+  }
+
+  // ── RENDERIZAR ──────────────────────────────────────────────
+  function renderAll(data) {
+    const totalQ = PERGUNTAS.length;
+    if (!data || !data.length) {
+      document.getElementById('chartsGrid').innerHTML =
+        '<div class="state-msg">Nenhuma resposta encontrada para os filtros selecionados.</div>';
+      document.getElementById('kpiTotal').textContent = '0';
+      document.getElementById('kpiTop').textContent   = '—';
+      document.getElementById('kpiLast').textContent  = '—';
+      document.getElementById('tableBody').innerHTML  =
+        `<tr><td colspan="${totalQ + 4}" style="text-align:center;color:#999;padding:20px;">Sem dados para exibir.</td></tr>`;
+      return;
+    }
+
+    // KPIs
+    document.getElementById('kpiTotal').textContent = data.length;
+    const counts = {};
+    OPS.forEach(o => counts[o] = 0);
+    data.forEach(row => {
+      for (let i = 1; i <= totalQ; i++) { const v = row['q' + i]; if (v) counts[v] = (counts[v] || 0) + 1; }
+    });
+    const topOp = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById('kpiTop').textContent    = LABEL_MAP[topOp[0]] || topOp[0];
+    document.getElementById('kpiTopSub').textContent = topOp[1] + ' ocorrências';
+    const last = data[0]?.created_at;
+    document.getElementById('kpiLast').textContent   = last ? new Date(last).toLocaleDateString('pt-BR') : '—';
+
+    // Gráficos
+    chartInstances.forEach(c => c.destroy());
+    chartInstances = [];
+    const grid = document.getElementById('chartsGrid');
+    grid.innerHTML = '';
+    for (let i = 1; i <= totalQ; i++) {
+      const qKey = 'q' + i;
+      const qtds = OPS.map(op => data.filter(r => r[qKey] === op).length);
+      const card = document.createElement('div');
+      card.className = 'chart-card';
+      card.innerHTML = `
+        <div class="chart-title"><span class="q-badge">${i}</span>${PERGUNTAS_CURTAS[i - 1]}</div>
+        <div class="chart-wrap"><canvas id="chart${i}"></canvas></div>`;
+      grid.appendChild(card);
+      const inst = new Chart(document.getElementById('chart' + i).getContext('2d'), {
+        type: 'bar',
+        data: { labels: LABELS, datasets: [{ data: qtds, backgroundColor: CORES, borderColor: BORDAS, borderWidth: 1.5, borderRadius: 4 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } },
+            x: { ticks: { font: { size: 9 } } }
+          }
+        }
+      });
+      chartInstances.push(inst);
+    }
+
+    // Tabela
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    data.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      const dt = row.created_at ? new Date(row.created_at).toLocaleString('pt-BR') : '—';
+      let cells = `<td>${data.length - idx}</td><td>${dt}</td>`;
+      cells += `<td>${row.unidade || '—'}</td><td>${row.setor || '—'}</td>`;
+      for (let i = 1; i <= totalQ; i++) {
+        const v = row['q' + i] || '—';
+        cells += `<td><span class="badge-resp badge-${v}">${LABEL_MAP[v] || v}</span></td>`;
+      }
+      tr.innerHTML = cells;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ── EXPORTAR CSV ────────────────────────────────────────────
+  function exportCSV() {
+    if (!allData.length) { alert('Nenhum dado para exportar.'); return; }
+    const unidade = document.getElementById('filterUnidade').value;
+    let dados = unidade ? allData.filter(r => r.unidade === unidade) : allData;
+    const totalQ = PERGUNTAS.length;
+    const header = ['id', 'created_at', 'unidade', 'setor'];
+    for (let i = 1; i <= totalQ; i++) header.push('q' + i);
+    const rows = dados.map(r => header.map(k => (r[k] || '').toString().replace(/,/g, ' ')).join(','));
+    const csv = [header.join(','), ...rows].join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const sufixo = unidade ? '_' + unidade.toLowerCase().replace(/\s/g, '_') : '';
+    a.download = 'respostas_clima' + sufixo + '_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+  }
+
+  // Inicia
+  loadData();
+</script>
+</body>
+</html>

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pesquisa de Clima Organizacional — Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      padding: 32px 16px;
+    }
+
+    .wrapper {
+      max-width: 640px;
+      margin: 0 auto;
+      background: #ffffff;
+    }
+
+    /* CABEÇALHO */
+    .header {
+      background-color: #2b3a55;
+      border-bottom: 4px solid #2f80ed;
+      padding: 0;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      padding: 18px 20px;
+      gap: 14px;
+    }
+    .header-logo {
+      width: 56px; height: 56px; flex-shrink: 0;
+      background: rgba(255,255,255,0.12);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+    .header-text { flex: 1; }
+    .header-text h1 {
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0 0 5px 0;
+      line-height: 1.35;
+    }
+    .header-text p {
+      color: #cdd6e6;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin: 0;
+    }
+    .header-badge {
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 20px;
+      padding: 4px 12px;
+      white-space: nowrap;
+    }
+
+    /* BARRA DE PROGRESSO */
+    .progress-wrap { height: 5px; background: #e0e0e0; }
+    .progress-bar {
+      height: 5px;
+      background: #2f80ed;
+      width: 0%;
+      transition: width 0.35s ease;
+    }
+
+    /* CORPO */
+    .form-body { padding: 28px 32px 36px; }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: #2f80ed;
+      margin-bottom: 18px;
+    }
+
+    /* BLOCOS DE PERGUNTA */
+    .question-block {
+      background-color: #f9f9f9;
+      border-left: 4px solid #2f80ed;
+      padding: 16px 18px;
+      margin-bottom: 12px;
+    }
+    .question-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #333333;
+      line-height: 1.5;
+      margin-bottom: 14px;
+      display: flex;
+      gap: 10px;
+    }
+    .q-num {
+      flex-shrink: 0;
+      background: #2f80ed;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+
+    /* OPÇÕES */
+    .options { display: flex; flex-wrap: nowrap; gap: 6px; }
+    .options label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      flex: 1;
+      background: #ffffff;
+      border: 1.5px solid #dddddd;
+      border-radius: 6px;
+      padding: 6px 4px;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #555555;
+      transition: all 0.15s;
+      user-select: none;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .options input[type="radio"] { display: none; }
+    .options label:hover { border-color: #2f80ed; color: #333333; }
+    .options label.checked {
+      background: #2f80ed;
+      border-color: #2f80ed;
+      color: #ffffff;
+    }
+    .dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      flex-shrink: 0;
+    }
+    .options label.checked .dot { background: white; border-color: white; }
+
+    .required-hint {
+      font-size: 11px;
+      color: #cc0000;
+      margin-top: 8px;
+      display: none;
+    }
+    .required-hint.show { display: block; }
+
+    /* SELECTS (Empresa / Equipe) */
+    .select-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .select-block {
+      background-color: #f9f9f9;
+      border-left: 4px solid #2f80ed;
+      padding: 14px 16px;
+    }
+    .select-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #888888;
+      margin-bottom: 8px;
+    }
+    .select-block select {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-family: Arial, sans-serif;
+      border: 1.5px solid #dddddd;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #999999;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .select-block select:focus { outline: none; border-color: #2f80ed; }
+    .select-block select.has-value { color: #333333; border-color: #2f80ed; }
+    .select-block select:disabled {
+      background: #f0f0f0;
+      color: #bbbbbb;
+      cursor: not-allowed;
+      border-color: #e5e5e5;
+    }
+
+    /* BOTÃO */
+    .submit-area { text-align: center; margin-top: 28px; }
+    button[type="submit"] {
+      background-color: #2f80ed;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 13px 48px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+      transition: opacity 0.18s;
+    }
+    button[type="submit"]:hover { opacity: 0.88; }
+    button[type="submit"]:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* ESTADO DE ENVIO */
+    .sending-msg, .error-msg {
+      display: none;
+      text-align: center;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+    .sending-msg { color: #666; }
+    .error-msg { color: #cc0000; }
+
+    /* TELA DE SUCESSO */
+    #success-screen {
+      display: none;
+      padding: 60px 32px;
+      text-align: center;
+    }
+    .check-icon { font-size: 48px; margin-bottom: 20px; }
+    #success-screen h2 { color: #333333; font-size: 18px; margin-bottom: 8px; }
+    #success-screen p { color: #888888; font-size: 13px; line-height: 1.7; }
+
+    /* RODAPÉ */
+    .footer {
+      background-color: #ffffff;
+      padding: 14px 28px 20px;
+      border-top: 1px solid #dddddd;
+      text-align: center;
+    }
+    .footer span {
+      display: block;
+      color: #aaaaaa;
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    /* BANNER DEMO */
+    .demo-banner {
+      background: #eaf2fe;
+      border-left: 4px solid #2f80ed;
+      padding: 14px 18px;
+      margin: 18px 32px 0;
+      font-size: 12px;
+      color: #444;
+      line-height: 1.6;
+    }
+    .demo-banner strong { color: #2f80ed; }
+
+    @media (max-width: 500px) {
+      .form-body { padding: 20px 16px 28px; }
+      .header-inner { padding: 14px 16px; }
+      .header-badge { display: none; }
+      .options { flex-direction: column; }
+      .demo-banner { margin: 18px 16px 0; }
+      .select-group { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- CABEÇALHO -->
+  <div class="header">
+    <div class="header-inner">
+      <div class="header-logo">🏢</div>
+      <div class="header-text">
+        <h1>Pesquisa de Clima Organizacional</h1>
+        <p>Recursos Humanos &nbsp;|&nbsp; Escuta Anônima</p>
+      </div>
+      <span class="header-badge">Anônimo</span>
+    </div>
+  </div>
+
+  <!-- BARRA DE PROGRESSO -->
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- BANNER DEMO -->
+  <div class="demo-banner">
+    <strong>Projeto de demonstração.</strong> Este formulário não envia dados para nenhum
+    servidor real — o envio é apenas simulado. Todos os dados são fictícios.
+  </div>
+
+  <!-- FORMULÁRIO -->
+  <div id="formWrapper">
+    <div class="form-body">
+
+      <!-- IDENTIFICAÇÃO -->
+      <div class="section-label" style="margin-bottom:14px;">🏢 Identificação</div>
+      <div class="select-group">
+
+        <div class="select-block">
+          <span class="select-label">Empresa / Unidade</span>
+          <select id="sel-unidade" onchange="onSelectChange(this)">
+            <option value="">Selecione…</option>
+            <option value="Unidade Norte">Unidade Norte</option>
+            <option value="Unidade Sul">Unidade Sul</option>
+            <option value="Unidade Leste">Unidade Leste</option>
+            <option value="Unidade Oeste">Unidade Oeste</option>
+            <option value="Matriz">Matriz</option>
+          </select>
+          <div class="required-hint" id="hint-unidade">⚠ Selecione a unidade.</div>
+        </div>
+
+        <div class="select-block">
+          <span class="select-label">Equipe / Setor</span>
+          <select id="sel-setor" onchange="onSelectChange(this)" disabled>
+            <option value="">Selecione a unidade primeiro</option>
+          </select>
+          <div class="required-hint" id="hint-setor">⚠ Selecione o setor.</div>
+        </div>
+
+      </div>
+
+      <div class="section-label">📋 Responda todas as perguntas abaixo</div>
+
+      <!-- As perguntas são geradas dinamicamente via JS -->
+      <div id="questionsContainer"></div>
+
+      <div class="submit-area">
+        <button type="submit" id="btnSubmit" onclick="submitForm()">Enviar Respostas</button>
+        <div class="sending-msg" id="sendingMsg">⏳ Enviando suas respostas…</div>
+        <div class="error-msg" id="errorMsg">❌ Erro ao enviar. Tente novamente.</div>
+      </div>
+
+    </div><!-- /form-body -->
+  </div><!-- /formWrapper -->
+
+  <!-- TELA DE SUCESSO -->
+  <div id="success-screen">
+    <div class="check-icon">✅</div>
+    <h2>Respostas enviadas com sucesso!</h2>
+    <p>Obrigado pela sua participação.<br>Suas respostas contribuem para um ambiente de trabalho melhor.</p>
+  </div>
+
+  <!-- RODAPÉ -->
+  <div class="footer">
+    <span>Empresa Exemplo &nbsp;—&nbsp; Recursos Humanos &nbsp;|&nbsp; Pesquisa de Clima</span>
+    <span id="footerDate" style="color:#cccccc; font-size:10px;"></span>
+  </div>
+
+</div><!-- /wrapper -->
+
+<!-- Configuração compartilhada (perguntas, opções, setores) -->
+<script src="config.js"></script>
+<script>
+  // ============================================================
+  // CONFIG DE BACKEND (placeholders — sem credenciais reais)
+  // No modo demo o envio é apenas simulado.
+  // Para integrar um backend real, preencha os valores abaixo
+  // e troque DEMO_MODE para false.
+  // ============================================================
+  const DEMO_MODE   = true;
+  const API_URL     = '{{API_URL}}';      // ex.: https://demo.exemplo.dev/api
+  const API_KEY     = '{{API_KEY}}';      // chave pública / publishable
+  const TABELA      = 'respostas_clima';
+  // ============================================================
+
+  const TOTAL = PERGUNTAS.length;
+
+  // Data no rodapé
+  document.getElementById('footerDate').textContent =
+    'Gerado em ' + new Date().toLocaleDateString('pt-BR') + '  |  Formulário de demonstração';
+
+  // ── RENDERIZAÇÃO DAS PERGUNTAS ──────────────────────────────
+  function renderQuestions() {
+    const container = document.getElementById('questionsContainer');
+    container.innerHTML = PERGUNTAS.map((texto, idx) => {
+      const i = idx + 1;
+      const opts = OPCOES.map(op => `
+        <label onclick="selectOption(this)">
+          <input type="radio" name="q${i}" value="${op.value}">
+          <div class="dot"></div>${op.label}
+        </label>`).join('');
+      return `
+        <div class="question-block">
+          <div class="question-label">
+            <span class="q-num">${i}</span><span>${texto}</span>
+          </div>
+          <div class="options" data-q="q${i}">${opts}</div>
+          <div class="required-hint" id="hint-q${i}">⚠ Por favor, selecione uma opção.</div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── SETORES DEPENDENTES DA UNIDADE ──────────────────────────
+  function populateSetores(unidade) {
+    const sel  = document.getElementById('sel-setor');
+    const hint = document.getElementById('hint-setor');
+    sel.innerHTML = '';
+    if (!unidade || !SETORES[unidade]) {
+      sel.appendChild(new Option('Selecione a unidade primeiro', ''));
+      sel.disabled = true;
+      sel.classList.remove('has-value');
+      return;
+    }
+    sel.appendChild(new Option('Selecione o setor…', ''));
+    SETORES[unidade].forEach(s => sel.appendChild(new Option(s, s)));
+    sel.disabled = false;
+    sel.classList.remove('has-value');
+    if (hint) hint.classList.remove('show');
+  }
+
+  function onSelectChange(sel) {
+    sel.classList.toggle('has-value', sel.value !== '');
+    const hint = document.getElementById('hint-' + sel.id.replace('sel-', ''));
+    if (hint) hint.classList.remove('show');
+    if (sel.id === 'sel-unidade') populateSetores(sel.value);
+  }
+
+  function selectOption(label) {
+    const optionsDiv = label.closest('.options');
+    optionsDiv.querySelectorAll('label').forEach(l => l.classList.remove('checked'));
+    label.classList.add('checked');
+    label.querySelector('input[type="radio"]').checked = true;
+    document.getElementById('hint-' + optionsDiv.dataset.q).classList.remove('show');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    let answered = 0;
+    for (let i = 1; i <= TOTAL; i++) {
+      if (document.querySelector(`input[name="q${i}"]:checked`)) answered++;
+    }
+    document.getElementById('progressBar').style.width = (answered / TOTAL * 100) + '%';
+  }
+
+  // ── ENVIO ───────────────────────────────────────────────────
+  async function submitForm() {
+    let valid = true;
+
+    const unidadeEl = document.getElementById('sel-unidade');
+    if (!unidadeEl.value) { document.getElementById('hint-unidade').classList.add('show'); valid = false; }
+    else { document.getElementById('hint-unidade').classList.remove('show'); }
+
+    const setorEl = document.getElementById('sel-setor');
+    if (!setorEl.disabled && !setorEl.value) { document.getElementById('hint-setor').classList.add('show'); valid = false; }
+    else { document.getElementById('hint-setor').classList.remove('show'); }
+
+    for (let i = 1; i <= TOTAL; i++) {
+      const answered = document.querySelector(`input[name="q${i}"]:checked`);
+      const hint = document.getElementById('hint-q' + i);
+      if (!answered) { hint.classList.add('show'); valid = false; }
+      else { hint.classList.remove('show'); }
+    }
+    if (!valid) {
+      document.querySelector('.required-hint.show')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // Coleta respostas
+    const payload = { unidade: unidadeEl.value, setor: setorEl.value || null };
+    for (let i = 1; i <= TOTAL; i++) {
+      payload['q' + i] = document.querySelector(`input[name="q${i}"]:checked`).value;
+    }
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    document.getElementById('sendingMsg').style.display = 'block';
+    document.getElementById('errorMsg').style.display = 'none';
+
+    try {
+      if (DEMO_MODE) {
+        // Simula latência de rede e "persiste" no localStorage do navegador.
+        await new Promise(r => setTimeout(r, 700));
+        const armazenadas = JSON.parse(localStorage.getItem('respostas_clima_demo') || '[]');
+        armazenadas.push({ id: Date.now(), created_at: new Date().toISOString(), ...payload });
+        localStorage.setItem('respostas_clima_demo', JSON.stringify(armazenadas));
+      } else {
+        // Integração real (exemplo de chamada REST genérica):
+        const res = await fetch(`${API_URL}/${TABELA}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': API_KEY,
+            'Authorization': 'Bearer ' + API_KEY
+          },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+      }
+
+      // Sucesso
+      document.getElementById('formWrapper').style.display = 'none';
+      document.getElementById('progressBar').style.width = '100%';
+      document.getElementById('success-screen').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (err) {
+      console.error(err);
+      btn.disabled = false;
+      document.getElementById('sendingMsg').style.display = 'none';
+      document.getElementById('errorMsg').style.display = 'block';
+    }
+  }
+
+  renderQuestions();
+</script>
+</body>
+</html>

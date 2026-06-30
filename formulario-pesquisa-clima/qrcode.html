@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR Code — Pesquisa de Clima (Demo)</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif; background: #f2f2f2;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 32px 16px;
+    }
+    .card { background: #fff; width: 380px; text-align: center; border-top: 6px solid #2f80ed; padding-bottom: 28px; }
+
+    .header {
+      background: #2b3a55; border-bottom: 4px solid #2f80ed; padding: 18px 20px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .header .logo {
+      width: 48px; height: 48px; flex-shrink: 0; background: rgba(255,255,255,0.12);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px;
+    }
+    .header-text { text-align: left; flex: 1; }
+    .header-text h1 { color: #fff; font-size: 12px; font-weight: 700; line-height: 1.4; margin-bottom: 3px; }
+    .header-text p { color: #cdd6e6; font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; }
+
+    .call { padding: 22px 24px 4px; }
+    .call h2 { font-size: 15px; font-weight: 700; color: #333; margin-bottom: 6px; line-height: 1.4; }
+    .call p { font-size: 11px; color: #888; line-height: 1.6; }
+
+    .qr-wrap { padding: 20px 0 10px; display: flex; justify-content: center; }
+    .qr-wrap canvas, .qr-wrap img { border: 8px solid #fff; outline: 2px solid #e0e0e0; border-radius: 4px; }
+
+    .badge {
+      display: inline-block; background: #eaf2fe; color: #2f80ed; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px; border: 1.5px solid #2f80ed;
+      border-radius: 20px; padding: 4px 14px; margin-bottom: 14px;
+    }
+
+    .url-box {
+      background: #f9f9f9; border: 1px dashed #ddd; border-radius: 6px; padding: 8px 16px;
+      margin: 0 24px 18px; font-size: 10px; color: #888; word-break: break-all;
+    }
+
+    .steps { display: flex; justify-content: center; gap: 20px; padding: 0 20px 4px; }
+    .step { text-align: center; }
+    .step .icon { font-size: 22px; margin-bottom: 4px; }
+    .step span { display: block; font-size: 10px; color: #666; line-height: 1.4; }
+
+    .footer { border-top: 1px solid #eee; padding: 12px 20px 0; margin-top: 16px; }
+    .footer span { display: block; font-size: 9px; color: #bbb; text-align: center; }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .card { box-shadow: none; margin: 0 auto; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- CABEÇALHO -->
+  <div class="header">
+    <div class="logo">🏢</div>
+    <div class="header-text">
+      <h1>Pesquisa de Clima Organizacional</h1>
+      <p>Recursos Humanos &nbsp;|&nbsp; Escuta Anônima</p>
+    </div>
+  </div>
+
+  <!-- CHAMADA -->
+  <div class="call">
+    <h2>Sua voz importa.<br>Responda agora!</h2>
+    <p>Aponte a câmera do celular para o QR Code<br>e responda em menos de 2 minutos.</p>
+  </div>
+
+  <!-- QR CODE -->
+  <div class="qr-wrap"><canvas id="qr"></canvas></div>
+
+  <!-- BADGE -->
+  <div><span class="badge">🔒 100% Anônimo</span></div>
+
+  <!-- URL -->
+  <div class="url-box" id="urlBox"></div>
+
+  <!-- PASSOS -->
+  <div class="steps">
+    <div class="step"><div class="icon">📱</div><span>Abra a<br>câmera</span></div>
+    <div class="step"><div class="icon">🔍</div><span>Aponte para<br>o QR Code</span></div>
+    <div class="step"><div class="icon">✅</div><span>Responda<br>o formulário</span></div>
+  </div>
+
+  <!-- RODAPÉ -->
+  <div class="footer">
+    <span>Empresa Exemplo &nbsp;—&nbsp; Recursos Humanos &nbsp;|&nbsp; Pesquisa de Clima</span>
+    <span id="footerDate"></span>
+  </div>
+
+</div>
+
+<!-- BOTÃO DE IMPRESSÃO -->
+<div class="no-print" style="position:fixed;bottom:24px;right:24px;">
+  <button onclick="window.print()"
+    style="background:#2f80ed;color:#fff;border:none;border-radius:6px;
+           padding:12px 24px;font-size:13px;font-weight:700;cursor:pointer;
+           font-family:Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+    🖨️ Imprimir
+  </button>
+</div>
+
+<script>
+  // URL pública do formulário (placeholder de demonstração)
+  const URL_FORM = 'https://demo.exemplo.dev/pesquisa-clima/';
+
+  document.getElementById('urlBox').textContent = URL_FORM;
+  document.getElementById('footerDate').textContent = 'Gerado em ' + new Date().toLocaleDateString('pt-BR');
+
+  QRCode.toCanvas(
+    document.getElementById('qr'),
+    URL_FORM,
+    { width: 220, margin: 1, color: { dark: '#333333', light: '#ffffff' } },
+    err => { if (err) console.error(err); }
+  );
+</script>
+</body>
+</html>

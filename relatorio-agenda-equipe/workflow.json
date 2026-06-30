@@ -1,0 +1,352 @@
+{
+  "name": "Relatorio e Alertas da Agenda da Equipe (DEMO)",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "meta": {
+    "instanceId": "demo"
+  },
+  "nodes": [
+    {
+      "id": "n001",
+      "name": "Gatilho Semanal",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 8 * * 1" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "n002",
+      "name": "Gatilho Diario",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 200],
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 8 * * 2-5" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "n003",
+      "name": "Tipo: Semanal",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [240, 0],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            { "id": "a001", "name": "tipo", "value": "semanal", "type": "string" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "n004",
+      "name": "Tipo: Diario",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [240, 200],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            { "id": "a002", "name": "tipo", "value": "diario", "type": "string" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "n005",
+      "name": "Calcular Periodo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 100],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Calcula a janela da semana atual (segunda a domingo) no fuso local.\nconst tipo = $input.first().json.tipo;\nconst offsetTz = 3 * 3600 * 1000; // ajuste de fuso de exemplo (UTC-3)\nconst agora = new Date();\nconst agoraLocal = new Date(agora.getTime() - offsetTz);\nconst diaSemana = agoraLocal.getUTCDay();\nconst diasAteSeg = diaSemana === 0 ? 6 : diaSemana - 1;\nconst segunda = new Date(agoraLocal);\nsegunda.setUTCDate(segunda.getUTCDate() - diasAteSeg);\nsegunda.setUTCHours(0, 0, 0, 0);\nconst domingo = new Date(segunda);\ndomingo.setUTCDate(domingo.getUTCDate() + 6);\ndomingo.setUTCHours(23, 59, 59, 0);\nconst startDateTime = new Date(segunda.getTime() + offsetTz).toISOString();\nconst endDateTime = new Date(domingo.getTime() + offsetTz).toISOString();\nconst opts = { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' };\nconst semanaLabel = segunda.toLocaleDateString('pt-BR', opts) + ' a ' + domingo.toLocaleDateString('pt-BR', opts);\nconst hojeStr = agoraLocal.toISOString().slice(0, 10);\nreturn [{ json: { tipo, startDateTime, endDateTime, semanaLabel, hojeStr } }];"
+      }
+    },
+    {
+      "id": "n006",
+      "name": "Montar Lista da Equipe",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 100],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Lista ficticia da equipe. Em producao, troque por uma fonte real (planilha, banco, API).\nconst { tipo, startDateTime, endDateTime, semanaLabel, hojeStr } = $input.first().json;\nconst equipe = [\n  { nome: 'Membro 1', email: 'membro1@exemplo.dev' },\n  { nome: 'Membro 2', email: 'membro2@exemplo.dev' },\n  { nome: 'Membro 3', email: 'membro3@exemplo.dev' },\n  { nome: 'Membro 4', email: 'membro4@exemplo.dev' }\n];\nreturn equipe.map(membro => ({ json: { tipo, startDateTime, endDateTime, semanaLabel, hojeStr, membro } }));"
+      }
+    },
+    {
+      "id": "n007",
+      "name": "Buscar Eventos do Calendario",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 100],
+      "credentials": {
+        "oAuth2Api": { "id": "", "name": "Credencial Calendario (placeholder)" }
+      },
+      "parameters": {
+        "method": "GET",
+        "url": "=https://demo.exemplo.dev/api/v1/users/{{ $json.membro.email }}/calendarView",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "startDateTime", "value": "={{ $json.startDateTime }}" },
+            { "name": "endDateTime", "value": "={{ $json.endDateTime }}" },
+            { "name": "select", "value": "id,subject,start,end,isAllDay,location" },
+            { "name": "orderby", "value": "start/dateTime" },
+            { "name": "top", "value": "100" }
+          ]
+        },
+        "options": {
+          "response": { "response": { "neverError": true } }
+        }
+      }
+    },
+    {
+      "id": "n008",
+      "name": "Agregar Equipe",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 100],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Junta cada resposta da API ao respectivo membro (preserva a ordem dos itens).\nconst respostas = $input.all();\nconst membrosDados = $('Montar Lista da Equipe').all();\nconst base = membrosDados[0].json;\nconst equipe = respostas.map((item, i) => {\n  const membro = membrosDados[i].json.membro;\n  const corpo = item.json;\n  if (corpo && corpo.error) {\n    return { membro, eventos: [], erroAPI: '[' + corpo.error.code + '] ' + corpo.error.message };\n  }\n  return { membro, eventos: (corpo && corpo.value) || [] };\n});\nreturn [{ json: { tipo: base.tipo, semanaLabel: base.semanaLabel, startDateTime: base.startDateTime, endDateTime: base.endDateTime, hojeStr: base.hojeStr, equipe } }];"
+      }
+    },
+    {
+      "id": "n009",
+      "name": "Switch: Semanal ou Diario?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1440, 100],
+      "parameters": {
+        "mode": "expression",
+        "output": "={{ $json.tipo === 'semanal' ? 0 : 1 }}",
+        "routing": [
+          {
+            "conditions": {
+              "conditions": [
+                { "leftValue": "={{ $json.tipo }}", "rightValue": "semanal", "operator": { "type": "string", "operation": "equals" } }
+              ],
+              "combinator": "and"
+            },
+            "outputKey": "semanal",
+            "output": 0
+          },
+          {
+            "conditions": {
+              "conditions": [
+                { "leftValue": "={{ $json.tipo }}", "rightValue": "diario", "operator": { "type": "string", "operation": "equals" } }
+              ],
+              "combinator": "and"
+            },
+            "outputKey": "diario",
+            "output": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "n010",
+      "name": "Gerar HTML Relatorio Semanal",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1680, -200],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Monta um e-mail HTML simples agrupando os eventos por dia, para cada membro.\nconst { semanaLabel, equipe, hojeStr } = $input.first().json;\nconst COR = '#2563eb';\n\nfunction formatarHora(ev) {\n  if (ev.isAllDay) return 'Dia inteiro';\n  const ini = ((ev.start && ev.start.dateTime) || '').slice(11, 16);\n  const fim = ((ev.end && ev.end.dateTime) || '').slice(11, 16);\n  return ini && fim ? ini + 'h - ' + fim + 'h' : 'Horario indefinido';\n}\n\nlet pessoasHtml = '';\nfor (let idx = 0; idx < equipe.length; idx++) {\n  const { membro, eventos, erroAPI } = equipe[idx];\n  pessoasHtml += '<h3 style=\"font-family:Arial;color:' + COR + ';margin:18px 0 8px;\">' + membro.nome + ' <small style=\"color:#999;font-weight:400;\">(' + membro.email + ')</small></h3>';\n  let conteudo = '';\n  if (erroAPI) {\n    conteudo = '<p style=\"color:#c00;font-family:Arial;\">Erro ao buscar agenda: ' + erroAPI + '</p>';\n  } else if (!eventos || eventos.length === 0) {\n    conteudo = '<p style=\"color:#888;font-style:italic;font-family:Arial;\">Sem compromissos na semana.</p>';\n  } else {\n    const porDia = {};\n    for (const ev of eventos) {\n      const chave = (((ev.start && ev.start.dateTime) || (ev.start && ev.start.date) || '')).slice(0, 10);\n      (porDia[chave] = porDia[chave] || []).push(ev);\n    }\n    for (const dataStr of Object.keys(porDia).sort()) {\n      const dataObj = new Date(dataStr + 'T12:00:00Z');\n      const labelDia = dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', timeZone: 'UTC' });\n      const ehHoje = dataStr === hojeStr;\n      conteudo += '<div style=\"font-weight:700;font-family:Arial;color:' + (ehHoje ? COR : '#555') + ';margin-top:8px;\">' + labelDia + (ehHoje ? ' (HOJE)' : '') + '</div>';\n      for (const ev of porDia[dataStr]) {\n        const local = (ev.location && ev.location.displayName) ? ' [' + ev.location.displayName + ']' : '';\n        conteudo += '<div style=\"font-family:Arial;font-size:14px;padding:4px 0 4px 10px;border-left:2px solid ' + (ehHoje ? COR : '#ddd') + ';\"><b style=\"color:' + COR + ';\">' + formatarHora(ev) + '</b> - ' + (ev.subject || '(sem titulo)') + local + '</div>';\n      }\n    }\n  }\n  pessoasHtml += '<div style=\"background:#f7f7f7;border-left:4px solid ' + COR + ';padding:12px;margin-bottom:12px;\">' + conteudo + '</div>';\n}\n\nconst html = '<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\"></head><body style=\"background:#f2f2f2;margin:0;padding:20px;\">' +\n  '<div style=\"max-width:600px;margin:0 auto;background:#fff;padding:24px;font-family:Arial;\">' +\n  '<h2 style=\"color:' + COR + ';margin:0 0 4px;\">Agenda da Equipe</h2>' +\n  '<p style=\"color:#888;font-size:12px;margin:0 0 16px;\">Semana ' + semanaLabel + '</p>' +\n  pessoasHtml +\n  '<hr style=\"border:none;border-top:1px solid #eee;margin-top:16px;\"><p style=\"color:#aaa;font-size:11px;\">Empresa Exemplo - Relatorio automatico (DEMO)</p>' +\n  '</div></body></html>';\n\nreturn [{ json: { html, semanaLabel } }];"
+      }
+    },
+    {
+      "id": "n011",
+      "name": "Enviar E-mail Semanal",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1920, -200],
+      "credentials": {
+        "smtp": { "id": "", "name": "SMTP (placeholder)" }
+      },
+      "parameters": {
+        "fromEmail": "relatorios@exemplo.dev",
+        "toEmail": "gestor@exemplo.dev",
+        "ccEmail": "copia@exemplo.dev",
+        "subject": "=Relatorio Semanal - Agenda da Equipe | Semana de {{ $json.semanaLabel }}",
+        "html": "={{ $json.html }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "n012",
+      "name": "Gerar Mensagem de Hoje",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1680, 100],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Monta a mensagem com os compromissos somente do dia atual.\nconst { equipe, hojeStr } = $input.first().json;\nconst hoje = new Date(hojeStr + 'T12:00:00Z');\nconst labelHoje = hoje.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', timeZone: 'UTC' });\n\nlet html = '<h3>Agenda da Equipe - ' + labelHoje + '</h3><hr>';\nfor (const { membro, eventos, erroAPI } of equipe) {\n  html += '<p><b>' + membro.nome + '</b></p>';\n  if (erroAPI) { html += '<p><i>Erro ao buscar agenda</i></p>'; continue; }\n  const eventosHoje = (eventos || []).filter(ev => (((ev.start && ev.start.dateTime) || (ev.start && ev.start.date) || '')).slice(0, 10) === hojeStr);\n  if (eventosHoje.length === 0) { html += '<p><i>Sem compromissos hoje</i></p>'; continue; }\n  html += '<ul>';\n  for (const ev of eventosHoje) {\n    if (ev.isAllDay) {\n      html += '<li><b>Dia inteiro</b> - ' + (ev.subject || '(sem titulo)') + '</li>';\n    } else {\n      const ini = ((ev.start && ev.start.dateTime) || '').slice(11, 16);\n      const fim = ((ev.end && ev.end.dateTime) || '').slice(11, 16);\n      const local = (ev.location && ev.location.displayName) ? ' [' + ev.location.displayName + ']' : '';\n      html += '<li><b>' + ini + ' - ' + fim + '</b> - ' + (ev.subject || '(sem titulo)') + local + '</li>';\n    }\n  }\n  html += '</ul>';\n}\nhtml += '<hr><p><i>Empresa Exemplo - Automacao (DEMO)</i></p>';\nreturn [{ json: { mensagemHtml: html, hojeStr } }];"
+      }
+    },
+    {
+      "id": "n013",
+      "name": "Enviar Resumo do Dia (Chat)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1920, 100],
+      "credentials": {
+        "httpHeaderAuth": { "id": "", "name": "Webhook Chat (placeholder)" }
+      },
+      "parameters": {
+        "method": "POST",
+        "url": "https://demo.exemplo.dev/webhook/chat-equipe",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"contentType\": \"html\", \"content\": {{ JSON.stringify($json.mensagemHtml) }} }",
+        "options": {}
+      }
+    },
+    {
+      "id": "n014",
+      "name": "E Segunda?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2160, 100],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            { "id": "seg01", "leftValue": "={{ $('Agregar Equipe').first().json.tipo }}", "rightValue": "semanal", "operator": { "type": "string", "operation": "equals" } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "n015",
+      "name": "Salvar Snapshot",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2400, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Guarda um retrato da agenda da semana para comparar nos dias seguintes.\nconst dados = $('Agregar Equipe').first().json;\nconst staticData = $getWorkflowStaticData('global');\nstaticData.snapshot = {\n  timestamp: new Date().toISOString(),\n  semanaLabel: dados.semanaLabel,\n  equipe: dados.equipe.map(p => ({\n    email: p.membro.email,\n    nome: p.membro.nome,\n    eventos: (p.eventos || []).map(ev => ({ id: ev.id, subject: ev.subject, start: ev.start, end: ev.end, isAllDay: ev.isAllDay }))\n  }))\n};\nreturn [{ json: { sucesso: true, snapshotTimestamp: staticData.snapshot.timestamp } }];"
+      }
+    },
+    {
+      "id": "n016",
+      "name": "Comparar com Snapshot",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1680, 380],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Compara a agenda atual com o snapshot da semana e detecta NOVO / ALTERADO / CANCELADO.\nconst { equipe: equipeAtual, semanaLabel, hojeStr } = $input.first().json;\nconst staticData = $getWorkflowStaticData('global');\nconst snapshot = staticData.snapshot;\nif (!snapshot) {\n  return [{ json: { temAlteracoes: false, alteracoes: [], semanaLabel, equipeAtual, hojeStr, aviso: 'Nenhum snapshot encontrado. Rode o relatorio semanal primeiro.' } }];\n}\nconst alteracoes = [];\nfor (const atual of equipeAtual) {\n  const membro = atual.membro;\n  const eventosAtuais = atual.eventos || [];\n  const pessoaSnap = snapshot.equipe.find(p => p.email === membro.email);\n  const eventosSnap = pessoaSnap ? pessoaSnap.eventos : [];\n  for (const ev of eventosAtuais) {\n    const noSnap = eventosSnap.find(s => s.id === ev.id);\n    if (!noSnap) {\n      alteracoes.push({ tipo: 'NOVO', membro: membro.nome, evento: ev });\n    } else {\n      const horaMudou = (noSnap.start && noSnap.start.dateTime) !== (ev.start && ev.start.dateTime) || (noSnap.end && noSnap.end.dateTime) !== (ev.end && ev.end.dateTime);\n      const tituloMudou = noSnap.subject !== ev.subject;\n      if (horaMudou || tituloMudou) alteracoes.push({ tipo: 'ALTERADO', membro: membro.nome, eventoAnterior: noSnap, evento: ev });\n    }\n  }\n  for (const evSnap of eventosSnap) {\n    if (!eventosAtuais.find(e => e.id === evSnap.id)) {\n      alteracoes.push({ tipo: 'CANCELADO', membro: membro.nome, evento: evSnap });\n    }\n  }\n}\nreturn [{ json: { temAlteracoes: alteracoes.length > 0, alteracoes, semanaLabel, equipeAtual, hojeStr } }];"
+      }
+    },
+    {
+      "id": "n017",
+      "name": "Tem Alteracoes?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1920, 380],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            { "id": "c001", "leftValue": "={{ $json.temAlteracoes }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "n018",
+      "name": "Gerar Mensagem de Alertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2160, 380],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Monta a mensagem de alerta listando o que mudou na agenda.\nconst { alteracoes, semanaLabel } = $input.first().json;\nconst novos = alteracoes.filter(a => a.tipo === 'NOVO');\nconst alterados = alteracoes.filter(a => a.tipo === 'ALTERADO');\nconst cancelados = alteracoes.filter(a => a.tipo === 'CANCELADO');\n\nfunction horaEv(ev) {\n  if (!ev) return '';\n  if (ev.isAllDay) return 'dia inteiro';\n  const ini = ((ev.start && ev.start.dateTime) || '').slice(11, 16);\n  const fim = ((ev.end && ev.end.dateTime) || '').slice(11, 16);\n  return ini && fim ? ini + ' - ' + fim : '';\n}\nfunction dataEv(ev) {\n  if (!ev) return '';\n  const dtStr = (ev.start && ev.start.dateTime) ? ev.start.dateTime : ((ev.start && ev.start.date) ? ev.start.date + 'T12:00:00Z' : '');\n  return dtStr ? new Date(dtStr).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'UTC' }) : '';\n}\n\nlet html = '<h3>Alteracoes na Agenda - Semana ' + semanaLabel + '</h3><hr>';\nif (novos.length) {\n  html += '<p><b>Novos compromissos:</b></p><ul>';\n  for (const a of novos) html += '<li><b>' + a.membro + '</b> - ' + dataEv(a.evento) + ', ' + horaEv(a.evento) + ': ' + (a.evento.subject || '(sem titulo)') + '</li>';\n  html += '</ul>';\n}\nif (alterados.length) {\n  html += '<p><b>Compromissos alterados:</b></p><ul>';\n  for (const a of alterados) {\n    const titulo = (a.evento && a.evento.subject) || (a.eventoAnterior && a.eventoAnterior.subject) || '(sem titulo)';\n    html += '<li><b>' + a.membro + '</b> - <b>' + titulo + '</b>: ' + horaEv(a.eventoAnterior) + ' -> ' + horaEv(a.evento) + '</li>';\n  }\n  html += '</ul>';\n}\nif (cancelados.length) {\n  html += '<p><b>Compromissos cancelados:</b></p><ul>';\n  for (const a of cancelados) html += '<li><b>' + a.membro + '</b> - ' + dataEv(a.evento) + ', ' + horaEv(a.evento) + ': ' + (a.evento.subject || '(sem titulo)') + '</li>';\n  html += '</ul>';\n}\nhtml += '<hr><p><i>Empresa Exemplo - Automacao (DEMO)</i></p>';\nreturn [{ json: { mensagemHtml: html, totalAlteracoes: alteracoes.length } }];"
+      }
+    },
+    {
+      "id": "n019",
+      "name": "Enviar Alerta (Chat)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2400, 380],
+      "credentials": {
+        "httpHeaderAuth": { "id": "", "name": "Webhook Chat (placeholder)" }
+      },
+      "parameters": {
+        "method": "POST",
+        "url": "https://demo.exemplo.dev/webhook/chat-equipe",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"contentType\": \"html\", \"content\": {{ JSON.stringify($json.mensagemHtml) }} }",
+        "options": {}
+      }
+    },
+    {
+      "id": "n020",
+      "name": "Atualizar Snapshot",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, 380],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Atualiza o snapshot apos enviar os alertas, para nao repetir o mesmo aviso amanha.\nconst { equipeAtual, semanaLabel } = $('Comparar com Snapshot').first().json;\nconst staticData = $getWorkflowStaticData('global');\nstaticData.snapshot = {\n  timestamp: new Date().toISOString(),\n  semanaLabel,\n  equipe: equipeAtual.map(p => ({\n    email: p.membro.email,\n    nome: p.membro.nome,\n    eventos: (p.eventos || []).map(ev => ({ id: ev.id, subject: ev.subject, start: ev.start, end: ev.end, isAllDay: ev.isAllDay }))\n  }))\n};\nreturn [{ json: { sucesso: true, snapshotAtualizado: staticData.snapshot.timestamp } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Gatilho Semanal": { "main": [[{ "node": "Tipo: Semanal", "type": "main", "index": 0 }]] },
+    "Gatilho Diario": { "main": [[{ "node": "Tipo: Diario", "type": "main", "index": 0 }]] },
+    "Tipo: Semanal": { "main": [[{ "node": "Calcular Periodo", "type": "main", "index": 0 }]] },
+    "Tipo: Diario": { "main": [[{ "node": "Calcular Periodo", "type": "main", "index": 0 }]] },
+    "Calcular Periodo": { "main": [[{ "node": "Montar Lista da Equipe", "type": "main", "index": 0 }]] },
+    "Montar Lista da Equipe": { "main": [[{ "node": "Buscar Eventos do Calendario", "type": "main", "index": 0 }]] },
+    "Buscar Eventos do Calendario": { "main": [[{ "node": "Agregar Equipe", "type": "main", "index": 0 }]] },
+    "Agregar Equipe": { "main": [[{ "node": "Switch: Semanal ou Diario?", "type": "main", "index": 0 }]] },
+    "Switch: Semanal ou Diario?": {
+      "main": [
+        [{ "node": "Gerar HTML Relatorio Semanal", "type": "main", "index": 0 }, { "node": "Gerar Mensagem de Hoje", "type": "main", "index": 0 }],
+        [{ "node": "Gerar Mensagem de Hoje", "type": "main", "index": 0 }, { "node": "Comparar com Snapshot", "type": "main", "index": 0 }]
+      ]
+    },
+    "Gerar HTML Relatorio Semanal": { "main": [[{ "node": "Enviar E-mail Semanal", "type": "main", "index": 0 }]] },
+    "Gerar Mensagem de Hoje": { "main": [[{ "node": "Enviar Resumo do Dia (Chat)", "type": "main", "index": 0 }]] },
+    "Enviar Resumo do Dia (Chat)": { "main": [[{ "node": "E Segunda?", "type": "main", "index": 0 }]] },
+    "E Segunda?": { "main": [[{ "node": "Salvar Snapshot", "type": "main", "index": 0 }], []] },
+    "Comparar com Snapshot": { "main": [[{ "node": "Tem Alteracoes?", "type": "main", "index": 0 }]] },
+    "Tem Alteracoes?": { "main": [[{ "node": "Gerar Mensagem de Alertas", "type": "main", "index": 0 }], []] },
+    "Gerar Mensagem de Alertas": { "main": [[{ "node": "Enviar Alerta (Chat)", "type": "main", "index": 0 }]] },
+    "Enviar Alerta (Chat)": { "main": [[{ "node": "Atualizar Snapshot", "type": "main", "index": 0 }]] }
+  }
+}

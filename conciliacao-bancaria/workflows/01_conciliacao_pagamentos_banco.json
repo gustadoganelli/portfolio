@@ -1,0 +1,384 @@
+{
+  "name": "01 - Conciliacao de Pagamentos (Banco x ERP)",
+  "nodes": [
+    {
+      "id": "trigger-cron",
+      "name": "Cron 06h00 (D-1)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 6 * * 1-5" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "trigger-webhook",
+      "name": "Webhook Manual",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [0, 500],
+      "parameters": {
+        "path": "conciliacao-pagamentos",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "conciliacao-pagamentos"
+    },
+    {
+      "id": "merge-triggers",
+      "name": "Merge Triggers",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [220, 400],
+      "parameters": {
+        "mode": "chooseBranch",
+        "chooseBranchMode": "waitForAll",
+        "output": "empty"
+      }
+    },
+    {
+      "id": "set-params",
+      "name": "Parametros de Execucao",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [440, 400],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "name": "dataAlvo",
+              "value": "={{ $json.body?.data ?? $now.minus({ days: 1 }).toFormat('yyyy-MM-dd') }}",
+              "type": "string"
+            },
+            {
+              "name": "contaBanco",
+              "value": "={{ $env.BANCO_CONTA }}",
+              "type": "string"
+            },
+            {
+              "name": "agenciaBanco",
+              "value": "={{ $env.BANCO_AGENCIA }}",
+              "type": "string"
+            },
+            {
+              "name": "tsInicio",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "banco-oauth-token",
+      "name": "Banco - OAuth Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 280],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.BANCO_BASE_URL }}/oauth/token",
+        "authentication": "none",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "grant_type",    "value": "client_credentials" },
+            { "name": "client_id",     "value": "={{ $env.BANCO_CLIENT_ID }}" },
+            { "name": "client_secret", "value": "={{ $env.BANCO_CLIENT_SECRET }}" }
+          ]
+        },
+        "options": {
+          "retry": { "enabled": true, "maxTries": 3, "waitBetweenTries": 30000 },
+          "timeout": 30000
+        }
+      }
+    },
+    {
+      "id": "banco-extrato",
+      "name": "Banco - Extrato D-1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 280],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.BANCO_BASE_URL }}/banking/v1/accounts/{{ $env.BANCO_AGENCIA }}/{{ $env.BANCO_CONTA }}/transactions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $('Banco - OAuth Token').item.json.access_token }}" },
+            { "name": "Content-Type",  "value": "application/json" },
+            { "name": "x-correlation-id", "value": "={{ $execution.id }}" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "dataInicio", "value": "={{ $('Parametros de Execucao').item.json.dataAlvo }}" },
+            { "name": "dataFim",    "value": "={{ $('Parametros de Execucao').item.json.dataAlvo }}" },
+            { "name": "tipoLancamento", "value": "DEBITO" }
+          ]
+        },
+        "options": {
+          "retry": { "enabled": true, "maxTries": 3, "waitBetweenTries": 30000 },
+          "timeout": 30000
+        }
+      }
+    },
+    {
+      "id": "sql-erp",
+      "name": "ERP - Pagos D-1",
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1,
+      "position": [880, 480],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    doc.numero_documento,\n    doc.valor,\n    doc.data_vencimento,\n    doc.data_baixa,\n    doc.historico,\n    ap.fornecedor,\n    ap.status,\n    mov.conta,\n    mov.saldo_apos\nFROM movimento_caixa mov\nINNER JOIN contas_pagar ap ON mov.id_titulo    = ap.id\nINNER JOIN documento     doc ON ap.id_documento = doc.id\nWHERE mov.conta = '{{ $env.ERP_CODIGO_CONTA }}'\n  AND doc.data_baixa >= '{{ $('Parametros de Execucao').item.json.dataAlvo }}'\n  AND doc.data_baixa <  '{{ $now.toFormat('yyyy-MM-dd') }}'\n  AND ap.status IN ('PAGO','BAIXADO')\nORDER BY doc.numero_documento"
+      },
+      "credentials": {
+        "microsoftSql": {
+          "id": "",
+          "name": "ERP SQL Server (placeholder)"
+        }
+      }
+    },
+    {
+      "id": "merge-data",
+      "name": "Merge Banco + ERP",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [1100, 380],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      }
+    },
+    {
+      "id": "fn-confronto",
+      "name": "Confronto Totais + Titulos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 380],
+      "parameters": {
+        "jsCode": "// ============================================================\n// Confronto de totais e titulo a titulo\n// Criterio: total do extrato bancario = total baixado no ERP\n// Tolerancia: diferenca < R$ 0,01\n// ============================================================\n\nconst CONTA = process.env.BANCO_CONTA || '0000-0';\nconst TOLERANCIA = 0.01;\n\nconst bancoRaw  = $('Banco - Extrato D-1').all();\nconst erpRaw    = $('ERP - Pagos D-1').all();\nconst dataAlvo  = $('Parametros de Execucao').first().json.dataAlvo;\nconst tsInicio  = $('Parametros de Execucao').first().json.tsInicio;\n\n// Normaliza lista do banco (aceita array direto ou wrapper { data: [...] })\nlet bancoList = [];\nfor (const item of bancoRaw) {\n  const raw = item.json;\n  const lancamentos = raw.data ?? raw.lancamentos ?? (Array.isArray(raw) ? raw : [raw]);\n  for (const l of lancamentos) {\n    if (!l || !l.numero_documento) continue;\n    bancoList.push({\n      numero_documento: String(l.numero_documento).trim(),\n      valor:            parseFloat(l.valor ?? 0),\n      tipo:             l.tipo ?? 'DEBITO',\n      descricao:        l.descricao ?? '',\n      beneficiario:     l.beneficiario ?? '',\n      data_pagamento:   l.data_pagamento ?? l.data_lancamento ?? dataAlvo,\n      saldo_apos:       parseFloat(l.saldo_apos ?? 0)\n    });\n  }\n}\n\nconst erpList = erpRaw.map(item => ({\n  numero_documento: String(item.json.numero_documento ?? '').trim(),\n  valor:            parseFloat(item.json.valor ?? 0),\n  data_baixa:       item.json.data_baixa ?? dataAlvo,\n  data_vencimento:  item.json.data_vencimento ?? '',\n  historico:        item.json.historico ?? '',\n  fornecedor:       item.json.fornecedor ?? '',\n  status:           item.json.status ?? '',\n  saldo_apos:       parseFloat(item.json.saldo_apos ?? 0)\n}));\n\n// --- 1. Valida totais ---\nconst valorBanco = bancoList.reduce((s, i) => s + i.valor, 0);\nconst valorERP   = erpList.reduce((s, i) => s + i.valor, 0);\nconst diferenca  = parseFloat((valorBanco - valorERP).toFixed(2));\nconst balanceado = Math.abs(diferenca) < TOLERANCIA;\n\n// --- 2. Confronto titulo a titulo ---\nconst ok                = [];\nconst divergentes       = [];\nconst naoEncontradosERP = []; // no banco mas nao no ERP\nconst naoEncontradosBan = []; // no ERP mas nao no banco\n\nconst erpMap = {};\nfor (const e of erpList) erpMap[e.numero_documento] = e;\n\nfor (const bItem of bancoList) {\n  const eItem = erpMap[bItem.numero_documento];\n  if (!eItem) {\n    naoEncontradosERP.push({\n      numero_documento: bItem.numero_documento,\n      valor_banco:      bItem.valor,\n      valor_erp:        null,\n      diferenca:        null,\n      beneficiario:     bItem.beneficiario,\n      data_pgto:        bItem.data_pagamento,\n      status_conciliacao: 'NAO ENCONTRADO NO ERP'\n    });\n    continue;\n  }\n  const valorOk = Math.abs(bItem.valor - eItem.valor) < TOLERANCIA;\n  const row = {\n    numero_documento: bItem.numero_documento,\n    valor_banco:      bItem.valor,\n    valor_erp:        eItem.valor,\n    diferenca:        parseFloat((bItem.valor - eItem.valor).toFixed(2)),\n    beneficiario:     bItem.beneficiario || eItem.fornecedor,\n    data_pgto:        bItem.data_pagamento,\n    status_conciliacao: valorOk ? 'OK' : 'DIVERGENTE'\n  };\n  if (valorOk) ok.push(row); else divergentes.push(row);\n}\n\nfor (const eItem of erpList) {\n  if (!bancoList.find(i => i.numero_documento === eItem.numero_documento)) {\n    naoEncontradosBan.push({\n      numero_documento: eItem.numero_documento,\n      valor_banco:      null,\n      valor_erp:        eItem.valor,\n      diferenca:        null,\n      beneficiario:     eItem.fornecedor,\n      data_pgto:        eItem.data_baixa,\n      status_conciliacao: 'NAO ENCONTRADO NO BANCO'\n    });\n  }\n}\n\nconst resultado = {\n  conta: CONTA,\n  dataAlvo,\n  tsInicio,\n  tsFim: new Date().toISOString(),\n  totais: {\n    valorBanco: parseFloat(valorBanco.toFixed(2)),\n    valorERP:   parseFloat(valorERP.toFixed(2)),\n    diferenca,\n    balanceado\n  },\n  contagens: {\n    ok:                ok.length,\n    divergentes:       divergentes.length,\n    naoEncontradosERP: naoEncontradosERP.length,\n    naoEncontradosBan: naoEncontradosBan.length,\n    total:             ok.length + divergentes.length + naoEncontradosERP.length + naoEncontradosBan.length\n  },\n  ok,\n  divergentes,\n  naoEncontradosERP,\n  naoEncontradosBan\n};\n\nreturn [{ json: resultado }];\n"
+      }
+    },
+    {
+      "id": "fn-excel",
+      "name": "Gera Excel XLSX",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, 380],
+      "parameters": {
+        "jsCode": "// ============================================================\n// Geracao XLSX com 2 abas usando a lib 'xlsx'\n//   Aba 1 - Divergencias (divergentes + nao encontrados)\n//   Aba 2 - Confronto Completo (linha de totais + todos)\n// ============================================================\n\nconst XLSX = require('xlsx');\nconst r = $input.first().json;\n\nconst linha = (row) => ({\n  'No Documento':    row.numero_documento,\n  'Valor Banco (R$)': row.valor_banco,\n  'Valor ERP (R$)':   row.valor_erp,\n  'Diferenca (R$)':   row.diferenca,\n  'Status':           row.status_conciliacao,\n  'Beneficiario':     row.beneficiario ?? '',\n  'Data Pgto':        row.data_pgto ?? ''\n});\n\nconst linhasDivergencias = [\n  ...r.divergentes, ...r.naoEncontradosERP, ...r.naoEncontradosBan\n].map(linha);\n\nconst todasLinhas = [\n  ...r.ok, ...r.divergentes, ...r.naoEncontradosERP, ...r.naoEncontradosBan\n].map(linha);\n\nconst totalRow = {\n  'No Documento':     'TOTAL DO DIA',\n  'Valor Banco (R$)': r.totais.valorBanco,\n  'Valor ERP (R$)':   r.totais.valorERP,\n  'Diferenca (R$)':   r.totais.diferenca,\n  'Status':           r.totais.balanceado ? 'BALANCEADO' : 'NAO BATE',\n  'Beneficiario':     '',\n  'Data Pgto':        r.dataAlvo\n};\n\nconst wb = XLSX.utils.book_new();\n\nconst wsDiv = XLSX.utils.json_to_sheet(\n  linhasDivergencias.length ? linhasDivergencias\n    : [{ 'Resultado': 'Sem divergencias nesta data', 'Data': r.dataAlvo }]\n);\nconst wsComp = XLSX.utils.json_to_sheet([totalRow, {}, ...todasLinhas]);\n\nXLSX.utils.book_append_sheet(wb, wsDiv,  'Divergencias');\nXLSX.utils.book_append_sheet(wb, wsComp, 'Confronto Completo');\n\nconst buffer      = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });\nconst nomeArquivo = `Conciliacao_Pagamentos_${r.dataAlvo}.xlsx`;\n\nreturn [{\n  json: { ...r, nomeArquivo },\n  binary: {\n    data: {\n      data:     buffer.toString('base64'),\n      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',\n      fileName: nomeArquivo\n    }\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "graph-auth",
+      "name": "MS Graph - Auth",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1760, 280],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://login.microsoftonline.com/{{ $env.MS_TENANT_ID }}/oauth2/v2.0/token",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/x-www-form-urlencoded" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "grant_type",    "value": "client_credentials" },
+            { "name": "client_id",     "value": "={{ $env.MS_CLIENT_ID }}" },
+            { "name": "client_secret", "value": "={{ $env.MS_CLIENT_SECRET }}" },
+            { "name": "scope",         "value": "https://graph.microsoft.com/.default" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "sharepoint-upload",
+      "name": "SharePoint - Upload XLSX",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1980, 280],
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://graph.microsoft.com/v1.0/sites/{{ $env.SHAREPOINT_SITE_ID }}/drive/root:/Conciliacoes/Pagamentos/{{ $('Parametros de Execucao').item.json.dataAlvo.substring(0,7) }}/{{ $('Gera Excel XLSX').item.json.nomeArquivo }}:/content",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $('MS Graph - Auth').item.json.access_token }}" },
+            { "name": "Content-Type",  "value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      }
+    },
+    {
+      "id": "fn-msg-teams",
+      "name": "Preparar Mensagem Teams",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2200, 380],
+      "parameters": {
+        "jsCode": "const r = $('Confronto Totais + Titulos').first().json;\nconst arquivo = $('Gera Excel XLSX').first().json.nomeArquivo;\n\nconst temDiv = r.contagens.divergentes > 0 || r.contagens.naoEncontradosERP > 0 || r.contagens.naoEncontradosBan > 0;\nconst cor    = !r.totais.balanceado ? 'FF0000' : (temDiv ? 'FF8C00' : '00B050');\nconst titulo = !r.totais.balanceado\n  ? `Conciliacao de Pagamentos - ${r.dataAlvo} - TOTAIS NAO BATEM`\n  : (temDiv ? `Conciliacao de Pagamentos - ${r.dataAlvo} - ATENCAO: ha divergencias`\n            : `Conciliacao de Pagamentos - ${r.dataAlvo} - Conciliado sem divergencias`);\n\nconst card = {\n  '@type': 'MessageCard',\n  '@context': 'http://schema.org/extensions',\n  themeColor: cor,\n  summary: `Conciliacao Pagamentos ${r.dataAlvo}`,\n  sections: [{\n    activityTitle: titulo,\n    activitySubtitle: 'Resultado automatico - Contas a Pagar',\n    facts: [\n      { name: 'Total Banco:',      value: `R$ ${r.totais.valorBanco.toFixed(2)}` },\n      { name: 'Total ERP:',        value: `R$ ${r.totais.valorERP.toFixed(2)}` },\n      { name: 'Diferenca:',        value: `R$ ${r.totais.diferenca.toFixed(2)}` },\n      { name: 'Titulos OK:',       value: String(r.contagens.ok) },\n      { name: 'Divergentes:',      value: String(r.contagens.divergentes) },\n      { name: 'Nao no ERP:',       value: String(r.contagens.naoEncontradosERP) },\n      { name: 'Nao no Banco:',     value: String(r.contagens.naoEncontradosBan) },\n      { name: 'Arquivo:',          value: arquivo }\n    ]\n  }]\n};\n\nreturn [{ json: { payload: JSON.stringify(card) } }];\n"
+      }
+    },
+    {
+      "id": "teams-alert",
+      "name": "Teams - Notificacao",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2420, 380],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.TEAMS_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.payload }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "webhook-response",
+      "name": "Resposta Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2640, 480],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ sucesso: true, dataAlvo: $('Parametros de Execucao').item.json.dataAlvo, totais: $('Confronto Totais + Titulos').item.json.totais, contagens: $('Confronto Totais + Titulos').item.json.contagens }) }}"
+      }
+    },
+    {
+      "id": "error-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 700],
+      "parameters": {}
+    },
+    {
+      "id": "error-handler",
+      "name": "Teams - Alerta Erro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 700],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.TEAMS_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={\n  \"@type\": \"MessageCard\",\n  \"@context\": \"http://schema.org/extensions\",\n  \"themeColor\": \"FF0000\",\n  \"summary\": \"ERRO - Conciliacao de Pagamentos\",\n  \"sections\": [{\n    \"activityTitle\": \"ERRO - Conciliacao de Pagamentos\",\n    \"activitySubtitle\": \"Falha na execucao automatica\",\n    \"facts\": [\n      {\"name\": \"No com erro:\", \"value\": \"{{ $json.error?.node?.name || 'desconhecido' }}\"},\n      {\"name\": \"Mensagem:\",    \"value\": \"{{ $json.error?.message || 'sem mensagem' }}\"},\n      {\"name\": \"Horario:\",     \"value\": \"{{ new Date().toLocaleString('pt-BR') }}\"}\n    ]\n  }]\n}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Cron 06h00 (D-1)": {
+      "main": [[{ "node": "Merge Triggers", "type": "main", "index": 0 }]]
+    },
+    "Webhook Manual": {
+      "main": [[{ "node": "Merge Triggers", "type": "main", "index": 1 }]]
+    },
+    "Merge Triggers": {
+      "main": [[{ "node": "Parametros de Execucao", "type": "main", "index": 0 }]]
+    },
+    "Parametros de Execucao": {
+      "main": [[
+        { "node": "Banco - OAuth Token", "type": "main", "index": 0 },
+        { "node": "ERP - Pagos D-1",     "type": "main", "index": 0 }
+      ]]
+    },
+    "Banco - OAuth Token": {
+      "main": [[{ "node": "Banco - Extrato D-1", "type": "main", "index": 0 }]]
+    },
+    "Banco - Extrato D-1": {
+      "main": [[{ "node": "Merge Banco + ERP", "type": "main", "index": 0 }]]
+    },
+    "ERP - Pagos D-1": {
+      "main": [[{ "node": "Merge Banco + ERP", "type": "main", "index": 1 }]]
+    },
+    "Merge Banco + ERP": {
+      "main": [[{ "node": "Confronto Totais + Titulos", "type": "main", "index": 0 }]]
+    },
+    "Confronto Totais + Titulos": {
+      "main": [[{ "node": "Gera Excel XLSX", "type": "main", "index": 0 }]]
+    },
+    "Gera Excel XLSX": {
+      "main": [[{ "node": "MS Graph - Auth", "type": "main", "index": 0 }]]
+    },
+    "MS Graph - Auth": {
+      "main": [[{ "node": "SharePoint - Upload XLSX", "type": "main", "index": 0 }]]
+    },
+    "SharePoint - Upload XLSX": {
+      "main": [[{ "node": "Preparar Mensagem Teams", "type": "main", "index": 0 }]]
+    },
+    "Preparar Mensagem Teams": {
+      "main": [[{ "node": "Teams - Notificacao", "type": "main", "index": 0 }]]
+    },
+    "Teams - Notificacao": {
+      "main": [[{ "node": "Resposta Webhook", "type": "main", "index": 0 }]]
+    },
+    "Error Trigger": {
+      "main": [[{ "node": "Teams - Alerta Erro", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "",
+    "timezone": "America/Sao_Paulo"
+  },
+  "active": false,
+  "pinData": {
+    "ERP - Pagos D-1": [
+      { "json": { "numero_documento": "DOC-1001", "valor": 1500.00, "data_baixa": "2026-06-29", "data_vencimento": "2026-06-29", "historico": "Pagamento fornecedor A", "fornecedor": "Fornecedor Exemplo A", "status": "PAGO", "saldo_apos": 48500.00 } },
+      { "json": { "numero_documento": "DOC-1002", "valor": 320.50, "data_baixa": "2026-06-29", "data_vencimento": "2026-06-29", "historico": "Pagamento fornecedor B", "fornecedor": "Fornecedor Exemplo B", "status": "PAGO", "saldo_apos": 48179.50 } },
+      { "json": { "numero_documento": "DOC-1003", "valor": 980.00, "data_baixa": "2026-06-29", "data_vencimento": "2026-06-29", "historico": "Pagamento fornecedor C", "fornecedor": "Fornecedor Exemplo C", "status": "BAIXADO", "saldo_apos": 47199.50 } }
+    ],
+    "Banco - Extrato D-1": [
+      { "json": { "data": [
+        { "numero_documento": "DOC-1001", "valor": 1500.00, "tipo": "DEBITO", "beneficiario": "Fornecedor Exemplo A", "data_pagamento": "2026-06-29", "saldo_apos": 48500.00 },
+        { "numero_documento": "DOC-1002", "valor": 320.50, "tipo": "DEBITO", "beneficiario": "Fornecedor Exemplo B", "data_pagamento": "2026-06-29", "saldo_apos": 48179.50 },
+        { "numero_documento": "DOC-9999", "valor": 75.00, "tipo": "DEBITO", "beneficiario": "Tarifa Bancaria", "data_pagamento": "2026-06-29", "saldo_apos": 47124.50 }
+      ] } }
+    ]
+  },
+  "tags": [
+    { "name": "financeiro" },
+    { "name": "conciliacao" },
+    { "name": "pagamentos" }
+  ],
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

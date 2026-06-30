@@ -1,0 +1,265 @@
+{
+  "name": "Integracao de Notas Fiscais (API -> Painel)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "11111111-0000-0000-0000-000000000001",
+      "name": "Agendador (1h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-640, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1",
+              "name": "baseUrl",
+              "value": "https://demo.exemplo.dev/api/v1",
+              "type": "string"
+            },
+            {
+              "id": "c2",
+              "name": "contaId",
+              "value": "000000",
+              "type": "string"
+            },
+            {
+              "id": "c3",
+              "name": "documentoEmpresa",
+              "value": "00000000000000",
+              "type": "string"
+            },
+            {
+              "id": "c4",
+              "name": "apiToken",
+              "value": "{{ENV_API_TOKEN}}",
+              "type": "string"
+            },
+            {
+              "id": "c5",
+              "name": "dataCorte",
+              "value": "2025-01-01",
+              "type": "string"
+            },
+            {
+              "id": "c6",
+              "name": "destBaseUrl",
+              "value": "https://demo.exemplo.dev/painel/api",
+              "type": "string"
+            },
+            {
+              "id": "c7",
+              "name": "destTabela",
+              "value": "notas_fiscais",
+              "type": "string"
+            },
+            {
+              "id": "c8",
+              "name": "maxPaginas",
+              "value": "2",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "11111111-0000-0000-0000-000000000002",
+      "name": "Configuracoes",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-440, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Busca paginada de notas fiscais na API de origem.\n// Faz retry com backoff em erros transitorios (5xx, 429, timeout).\nconst cfg = $('Configuracoes').first().json;\nconst base = cfg.baseUrl, contaId = cfg.contaId, doc = cfg.documentoEmpresa, token = cfg.apiToken;\nif (!token || !base || !contaId || !doc) throw new Error('Configuracoes nao chegou.');\nconst helpers = this.helpers;\nconst sleep = (ms) => new Promise(r => setTimeout(r, ms));\nconst tamanho = 50;\nconst maxPaginas = Number(cfg.maxPaginas) > 0 ? Number(cfg.maxPaginas) : 1000;\nconst todos = [];\nconst paginasComErro = [];\nlet pagina = 1;\nlet totalPaginas = 1;\nconst buscarPagina = async (p) => {\n  const url = `${base}/${contaId}/${doc}/documentos/novos`;\n  const maxTentativas = 6;\n  for (let t = 1; t <= maxTentativas; t++) {\n    try {\n      return await helpers.httpRequest({\n        method: 'GET', url,\n        qs: { Tamanho: tamanho, Pagina: p, Xml: false },\n        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },\n        json: true,\n        timeout: 60000,\n      });\n    } catch (e) {\n      const status = e.httpCode || e.statusCode || (e.response && e.response.status);\n      const transitorio = !status || status >= 500 || status === 429;\n      if (t < maxTentativas && transitorio) { await sleep(2000 * t); continue; }\n      return null;\n    }\n  }\n};\ndo {\n  const resp = await buscarPagina(pagina);\n  if (resp === null) {\n    paginasComErro.push(pagina);\n  } else {\n    todos.push(...(resp.documentos || []));\n    totalPaginas = resp.paginas || totalPaginas;\n  }\n  pagina++;\n  await sleep(300);\n} while (pagina <= totalPaginas && pagina <= maxPaginas);\nif (paginasComErro.length) console.log('Paginas que falharam, reprocessar depois:', paginasComErro.join(', '));\nif (!todos.length && paginasComErro.length) throw new Error('Nenhum documento: todas as paginas falharam: ' + paginasComErro.join(', '));\nreturn todos.map(d => ({ json: d }));"
+      },
+      "id": "11111111-0000-0000-0000-000000000003",
+      "name": "Buscar Documentos (API)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filtra por data de corte e remove duplicatas internas (a API pode repetir registros).\nconst cfg = $('Configuracoes').first().json;\nconst dataCorte = new Date(cfg.dataCorte);\nconst vistos = new Set();\nconst out = [];\nfor (const item of $input.all()) {\n  const doc = item.json;\n  // 1) somente notas do tipo desejado\n  if (doc.modelo !== 'NF') continue;\n  // 2) filtro por data de corte\n  const dtStr = doc.data_emissao;\n  if (!dtStr || new Date(dtStr) < dataCorte) continue;\n  // 3) dedup interno pela chave\n  if (vistos.has(doc.chave)) continue;\n  vistos.add(doc.chave);\n  out.push({ json: doc });\n}\nreturn out;"
+      },
+      "id": "11111111-0000-0000-0000-000000000004",
+      "name": "Filtrar por Data de Corte",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-40, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url_download }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "11111111-0000-0000-0000-000000000005",
+      "name": "Baixar XML",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [160, 300]
+    },
+    {
+      "parameters": {
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "id": "11111111-0000-0000-0000-000000000006",
+      "name": "XML para JSON",
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [360, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normaliza os campos do XML + dados da API em um registro plano.\nconst apiItems = $('Filtrar por Data de Corte').all();\nconst inputs = $input.all();\nconst num = (v) => (v === undefined || v === null || v === '') ? null : Number(v);\nconst out = [];\nfor (let i = 0; i < inputs.length; i++) {\n  const root = inputs[i].json;\n  const api = apiItems[i] ? apiItems[i].json : {};\n  const proc = root.notaProc || root;\n  const nota = proc.Nota || proc;\n  const inf = nota.infNota || {};\n  const ide = inf.ide || {};\n  const emit = inf.emitente || {};\n  const dest = inf.destinatario || {};\n  let det = inf.det || {};\n  if (Array.isArray(det)) det = det[0] || {};\n  const prod = det.produto || {};\n  const total = (inf.total && inf.total.tributos) || {};\n  const prot = (proc.protNota && proc.protNota.infProt) || {};\n  const idAttr = inf.$ && inf.$.Id ? String(inf.$.Id).replace(/^NF/, '') : null;\n  const chaveXml = prot.chave || idAttr;\n  out.push({ json: {\n    chave: api.chave || chaveXml,\n    numero_documento: ide.numero ?? null,\n    nome_emitente: emit.nome ?? null,\n    documento_emitente: emit.cnpj ?? emit.cpf ?? null,\n    data_emissao: ide.dataEmissao ?? null,\n    codigo_operacao: prod.codigoOperacao ?? null,\n    natureza_operacao: ide.naturezaOperacao ?? null,\n    valor_produtos: num(total.valorProdutos),\n    valor_frete: num(total.valorFrete),\n    valor_impostos: num(total.valorImpostos),\n    valor_total: num(total.valorTotal),\n    documento_destinatario: dest.cnpj ?? null,\n    modelo: String(api.modelo ?? ide.modelo ?? ''),\n    status: String(api.status ?? ''),\n    tipo: String(api.tipo ?? ide.tipo ?? '')\n  }});\n}\nreturn out;"
+      },
+      "id": "11111111-0000-0000-0000-000000000007",
+      "name": "Mapear Campos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [560, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configuracoes').first().json.destBaseUrl }}/{{ $('Configuracoes').first().json.destTabela }}?chave={{ $json.chave }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "options": {}
+      },
+      "id": "11111111-0000-0000-0000-000000000008",
+      "name": "Verificar Duplicata (Painel)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [760, 300],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "",
+          "name": "Credencial OAuth2 (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "ifcond1",
+              "leftValue": "={{ ($json.registros || []).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "11111111-0000-0000-0000-000000000009",
+      "name": "Ja existe no Painel?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configuracoes').first().json.destBaseUrl }}/{{ $('Configuracoes').first().json.destTabela }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { registro: $('Mapear Campos').item.json } }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 300
+            }
+          }
+        }
+      },
+      "id": "11111111-0000-0000-0000-000000000010",
+      "name": "Criar Registro no Painel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1180, 200],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "",
+          "name": "Credencial OAuth2 (placeholder)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Agendador (1h)": {
+      "main": [[{ "node": "Configuracoes", "type": "main", "index": 0 }]]
+    },
+    "Configuracoes": {
+      "main": [[{ "node": "Buscar Documentos (API)", "type": "main", "index": 0 }]]
+    },
+    "Buscar Documentos (API)": {
+      "main": [[{ "node": "Filtrar por Data de Corte", "type": "main", "index": 0 }]]
+    },
+    "Filtrar por Data de Corte": {
+      "main": [[{ "node": "Baixar XML", "type": "main", "index": 0 }]]
+    },
+    "Baixar XML": {
+      "main": [[{ "node": "XML para JSON", "type": "main", "index": 0 }]]
+    },
+    "XML para JSON": {
+      "main": [[{ "node": "Mapear Campos", "type": "main", "index": 0 }]]
+    },
+    "Mapear Campos": {
+      "main": [[{ "node": "Verificar Duplicata (Painel)", "type": "main", "index": 0 }]]
+    },
+    "Verificar Duplicata (Painel)": {
+      "main": [[{ "node": "Ja existe no Painel?", "type": "main", "index": 0 }]]
+    },
+    "Ja existe no Painel?": {
+      "main": [
+        [{ "node": "Criar Registro no Painel", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

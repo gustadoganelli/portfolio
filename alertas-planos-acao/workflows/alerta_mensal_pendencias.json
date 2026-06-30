@@ -1,0 +1,142 @@
+{
+  "name": "Alerta Mensal - Acoes em Aberto (Demo)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 1 * *"
+            }
+          ]
+        }
+      },
+      "id": "node-trigger-1001",
+      "name": "Todo dia 1 do mes as 10h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://demo.exemplo.dev/api/acoes?status=neq.Concluido&status2=neq.Cancelado&select=id,titulo,nomeResponsavel,emailResponsavel&top=5000",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Accept", "value": "application/json" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-buscar-1002",
+      "name": "Buscar Acoes em Aberto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Credencial API (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.first().json.value || [];\nif (!items.length) return [{ json: { hasItems: false, groups: [] } }];\n\nconst grouped = items.reduce((acc, item) => {\n  const email = (item.emailResponsavel || '').trim();\n  if (!email || !email.includes('@')) return acc;\n  if (!acc[email]) {\n    acc[email] = {\n      email,\n      nomeResponsavel: (item.nomeResponsavel || 'Responsavel').trim(),\n      qtdAcoes: 0\n    };\n  }\n  acc[email].qtdAcoes++;\n  return acc;\n}, {});\n\nconst groups = Object.values(grouped);\nconsole.log(`[INFO] ${groups.length} responsavel(is) com acoes em aberto.`);\nreturn [{ json: { hasItems: groups.length > 0, groups } }];"
+      },
+      "id": "node-agrupar-1003",
+      "name": "Agrupar por Responsavel",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true },
+          "conditions": [
+            {
+              "id": "cond-hasitems",
+              "leftValue": "={{ $json.hasItems }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-temacoes-1004",
+      "name": "Tem Acoes em Aberto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nif (!data?.groups?.length) return [];\nreturn data.groups.map(g => ({ json: g }));"
+      },
+      "id": "node-preparar-1005",
+      "name": "Preparar E-mails",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1080, 200]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "Voce tem acoes em aberto - Portal de Planos de Acao",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\"></head><body style=\"margin:0;padding:0;background-color:#f2f2f2;font-family:Arial,sans-serif;\"><center><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"max-width:600px;background-color:#ffffff;\"><tr><td style=\"background-color:#2b3a55;border-bottom:4px solid #4f86c6;padding:18px 24px;\"><h2 style=\"color:#ffffff;font-size:16px;margin:0;\">Acoes em Aberto</h2><p style=\"color:#cfd8e3;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin:6px 0 0 0;\">Lembrete Mensal - Empresa Exemplo</p></td></tr><tr><td style=\"padding:32px;\"><p style=\"font-size:16px;color:#333333;margin:0 0 14px 0;\">Ola, <strong>{{ $json.nomeResponsavel }}</strong>,</p><p style=\"font-size:15px;color:#555555;line-height:1.75;margin:0 0 20px 0;\">Voce possui <strong style=\"color:#4f86c6;\">{{ $json.qtdAcoes }} acao(oes) em aberto</strong> no Portal de Planos de Acao que ainda aguardam o seu retorno.</p><p style=\"font-size:15px;color:#555555;line-height:1.75;margin:0 0 28px 0;\">Acesse o portal para registrar seu plano de acao e atualizar o status de cada pendencia.</p><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td style=\"border-radius:6px;background-color:#4f86c6;\"><a href=\"https://demo.exemplo.dev/portal\" target=\"_blank\" style=\"display:inline-block;padding:14px 32px;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:6px;\">Acessar o Portal</a></td></tr></table></td></tr><tr><td style=\"background-color:#f8f9fa;padding:20px 32px;border-top:1px solid #e9ecef;\"><p style=\"margin:0;font-size:12px;color:#aaaaaa;line-height:1.6;\">Lembrete automatico do Portal de Planos de Acao - Empresa Exemplo. Nao responda este e-mail.</p></td></tr></table></center></body></html>",
+        "options": {
+          "replyTo": "naoresponda@exemplo.dev"
+        }
+      },
+      "id": "node-enviar-1006",
+      "name": "Enviar Lembrete Mensal",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1300, 200],
+      "credentials": {
+        "smtp": {
+          "id": "",
+          "name": "SMTP (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "node-nenhuma-1007",
+      "name": "Nenhuma Acao em Aberto",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1080, 420]
+    }
+  ],
+  "connections": {
+    "Todo dia 1 do mes as 10h": {
+      "main": [[{ "node": "Buscar Acoes em Aberto", "type": "main", "index": 0 }]]
+    },
+    "Buscar Acoes em Aberto": {
+      "main": [[{ "node": "Agrupar por Responsavel", "type": "main", "index": 0 }]]
+    },
+    "Agrupar por Responsavel": {
+      "main": [[{ "node": "Tem Acoes em Aberto?", "type": "main", "index": 0 }]]
+    },
+    "Tem Acoes em Aberto?": {
+      "main": [
+        [{ "node": "Preparar E-mails", "type": "main", "index": 0 }],
+        [{ "node": "Nenhuma Acao em Aberto", "type": "main", "index": 0 }]
+      ]
+    },
+    "Preparar E-mails": {
+      "main": [[{ "node": "Enviar Lembrete Mensal", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

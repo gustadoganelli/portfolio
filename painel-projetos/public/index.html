@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Projetos — Demo</title>
+
+  <!-- Chart.js via CDN (apenas para os gráficos do dashboard) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- =========================================================
+     APLICAÇÃO
+     ========================================================= -->
+<div id="app" class="on">
+
+  <!-- Cabeçalho -->
+  <header class="topbar">
+    <div class="top-logo">PP</div>
+    <div class="top-titles">
+      <div class="top-title">Painel de Projetos</div>
+      <div class="top-sub">Demo · Empresa Exemplo</div>
+    </div>
+    <div class="top-spacer"></div>
+    <div class="top-user">
+      <div class="top-uname">Joana Demo</div>
+      <div class="top-urole">Gestão</div>
+    </div>
+    <div class="top-avatar">J</div>
+  </header>
+
+  <div class="shell">
+    <!-- Navegação lateral -->
+    <nav class="sidenav" id="sidenav">
+      <div class="nav-item sel" data-view="dashboard"><span class="nav-ico">▦</span><span>Dashboard</span></div>
+      <div class="nav-item" data-view="projetos"><span class="nav-ico">▤</span><span>Projetos</span></div>
+      <div class="nav-item" data-view="ferramentas"><span class="nav-ico">⚙</span><span>Tecnologias</span></div>
+    </nav>
+
+    <!-- Conteúdo -->
+    <main class="content" id="content">
+
+      <!-- ===== VIEW: DASHBOARD ===== -->
+      <section class="view on" id="view-dashboard">
+        <div class="view-head">
+          <h1>Dashboard</h1>
+          <p class="view-desc">Visão geral e quantificação dos projetos cadastrados.</p>
+        </div>
+
+        <div class="cards" id="dash-cards"><!-- cards injetados --></div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Projetos por categoria</h3>
+            <canvas id="chart-categoria"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Demanda por setor</h3>
+            <canvas id="chart-setor"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Projetos por status</h3>
+            <canvas id="chart-status"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Produtividade por autor</h3>
+            <canvas id="chart-autor"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== VIEW: PROJETOS (catálogo) ===== -->
+      <section class="view" id="view-projetos">
+        <div class="view-head">
+          <h1>Projetos</h1>
+          <p class="view-desc">Catálogo de projetos e ferramentas internas.</p>
+          <div class="view-actions">
+            <button class="btn-primary" id="btn-novo-projeto">+ Novo projeto</button>
+          </div>
+        </div>
+
+        <div class="view-toggle">
+          <button type="button" id="modo-quadro" class="toggle-btn ativo">▦ Quadro</button>
+          <button type="button" id="modo-grade" class="toggle-btn">▤ Grade</button>
+        </div>
+
+        <div class="filtros" id="filtros">
+          <input type="search" id="f-busca" class="f-input" placeholder="Buscar por título…" />
+          <select id="f-setor" class="f-input"><option value="">Todos os setores</option></select>
+          <select id="f-ferramenta" class="f-input"><option value="">Todas as tecnologias</option></select>
+          <select id="f-autor" class="f-input"><option value="">Todos os autores</option></select>
+          <select id="f-status" class="f-input"><option value="">Todos os status</option></select>
+          <button class="btn-ghost" id="f-limpar">Limpar</button>
+        </div>
+
+        <div id="projetos-colunas" class="colunas"><!-- colunas por categoria --></div>
+        <div id="projetos-grade" class="grade-wrap" hidden><!-- tabela (visão grade) --></div>
+        <div id="projetos-vazio" class="vazio" hidden>Nenhum projeto encontrado com esses filtros.</div>
+      </section>
+
+      <!-- ===== VIEW: TECNOLOGIAS ===== -->
+      <section class="view" id="view-ferramentas">
+        <div class="view-head">
+          <h1>Tecnologias</h1>
+          <p class="view-desc">Catálogo de tecnologias usadas nos projetos.</p>
+          <div class="view-actions">
+            <form id="form-ferramenta" class="inline-form">
+              <input type="text" id="nova-ferramenta" class="f-input" placeholder="Nova tecnologia…" />
+              <button class="btn-primary" type="submit">Adicionar</button>
+            </form>
+          </div>
+        </div>
+        <div id="ferramentas-lista" class="chips-lista"><!-- chips --></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+
+<!-- =========================================================
+     MODAL: PROJETO (cadastro / edição)
+     ========================================================= -->
+<div id="modal-projeto" class="modal" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="modal-projeto-titulo">Projeto</h2>
+      <button class="modal-x" data-fechar-modal="modal-projeto">×</button>
+    </div>
+    <form id="form-projeto" class="modal-body">
+      <input type="hidden" id="p-id" />
+
+      <label>Título</label>
+      <input type="text" id="p-titulo" required />
+
+      <label>Descrição</label>
+      <textarea id="p-descricao" rows="3"></textarea>
+
+      <label>Categoria (coluna do painel)</label>
+      <select id="p-categoria">
+        <option value="automacoes">Automações</option>
+        <option value="bi">BI / Relatórios</option>
+        <option value="apps">Aplicativos</option>
+        <option value="integracoes">Integrações</option>
+        <option value="web">Web</option>
+      </select>
+
+      <div class="form-row">
+        <div>
+          <label>Setor atendido</label>
+          <select id="p-setor"></select>
+        </div>
+        <div>
+          <label>Autor</label>
+          <select id="p-autor"></select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label>Status</label>
+          <select id="p-status">
+            <option value="solicitado">Solicitado</option>
+            <option value="em_avaliacao">Em avaliação</option>
+            <option value="aprovado">Aprovado</option>
+            <option value="em_desenvolvimento">Em desenvolvimento</option>
+            <option value="em_producao">Em produção</option>
+            <option value="pausado">Pausado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+        <div>
+          <label>Prioridade</label>
+          <select id="p-prioridade">
+            <option value="baixa">Baixa</option>
+            <option value="media">Média</option>
+            <option value="alta">Alta</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Tecnologias utilizadas</label>
+      <div id="p-ferramentas" class="check-grid"><!-- checkboxes --></div>
+
+      <div class="form-row">
+        <div>
+          <label>Link publicado</label>
+          <input type="url" id="p-link" placeholder="https://demo.exemplo.dev/…" />
+        </div>
+        <div>
+          <label>Prazo estimado (dias)</label>
+          <input type="number" id="p-prazo" min="0" />
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn-danger" id="btn-excluir-projeto" hidden>Excluir</button>
+        <div class="modal-foot-right">
+          <button type="button" class="btn-ghost" data-fechar-modal="modal-projeto">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- =========================================================
+     MODAL: DETALHE DO PROJETO (somente leitura)
+     ========================================================= -->
+<div id="modal-detalhe" class="modal" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="det-titulo">Projeto</h2>
+      <button class="modal-x" data-fechar-modal="modal-detalhe">×</button>
+    </div>
+    <div class="modal-body" id="det-body"><!-- preenchido via JS --></div>
+  </div>
+</div>
+
+
+<!-- Toast / aviso flutuante -->
+<div id="toast" class="toast" hidden></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

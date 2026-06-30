@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Painel de Auditoria (Demo)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <header class="topbar">
+    <div class="top-logo">A</div>
+    <div class="top-titles">
+      <div class="top-title">Painel de Auditoria</div>
+      <div class="top-sub">Empresa Exemplo - demonstracao</div>
+    </div>
+    <div class="top-spacer"></div>
+    <div class="demo-pill">Dados ficticios</div>
+  </header>
+
+  <div class="shell">
+    <nav class="sidenav" id="sidenav"></nav>
+
+    <main class="content" id="content">
+
+      <!-- ===== RESULTADOS ===== -->
+      <section class="view on" id="view-dashboard">
+        <div class="view-head">
+          <h1>Resultados</h1>
+          <p class="view-desc">Conformidade media e nao conformidades por unidade.</p>
+        </div>
+
+        <div class="filtros" id="filtros"></div>
+
+        <div class="kpis" id="kpis"></div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-head">Nota media por unidade</div>
+            <div class="bars" id="bars-unidade"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">Nao conformidades por risco</div>
+            <div class="bars" id="bars-risco"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">Nota media por area</div>
+          <div class="bars" id="bars-area"></div>
+        </div>
+      </section>
+
+      <!-- ===== NAO CONFORMIDADES ===== -->
+      <section class="view" id="view-ncs">
+        <div class="view-head">
+          <h1>Nao conformidades</h1>
+          <p class="view-desc">Achados abertos e em tratamento, ordenados por risco.</p>
+        </div>
+        <div class="toolbar">
+          <label>Status
+            <select id="f-status">
+              <option value="">Todos</option>
+              <option value="ABERTA">Aberta</option>
+              <option value="EM_TRATAMENTO">Em tratamento</option>
+              <option value="RESOLVIDA">Resolvida</option>
+              <option value="REJEITADA">Rejeitada</option>
+            </select>
+          </label>
+          <label>Unidade
+            <select id="f-unidade"><option value="">Todas</option></select>
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table id="tab-ncs">
+            <thead>
+              <tr>
+                <th>Descricao</th><th>Unidade</th><th>Area</th>
+                <th>Categoria</th><th>Risco</th><th>GUT</th><th>Status</th><th>Prazo</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== AUDITORIAS ===== -->
+      <section class="view" id="view-auditorias">
+        <div class="view-head">
+          <h1>Auditorias</h1>
+          <p class="view-desc">Historico de auditorias confirmadas.</p>
+        </div>
+        <div class="table-wrap">
+          <table id="tab-aud">
+            <thead>
+              <tr><th>Unidade</th><th>Periodo</th><th>Auditor</th><th>Nota</th><th>Respostas</th><th>NCs</th><th>Confirmada em</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

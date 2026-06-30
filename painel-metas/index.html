@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Metas | Empresa Exemplo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===========================================================
+     TELA DE LOGIN
+============================================================ -->
+<div id="lo">
+  <div class="lbox">
+    <div class="l-logo">
+      <img id="logo-img" alt="Logo Empresa Exemplo">
+      <div class="l-brand">
+        <div class="l-org">Empresa Exemplo</div>
+        <div class="l-tit">Painel<br>de Metas</div>
+      </div>
+    </div>
+    <div class="l-sub">Acesse com seu e-mail corporativo (demonstração)</div>
+    <form class="lf" onsubmit="doLogin(event)">
+      <div>
+        <label>E-mail</label>
+        <input type="email" id="inp-email" placeholder="nome@exemplo.dev" required autofocus>
+      </div>
+      <div>
+        <label>Senha</label>
+        <input type="password" id="inp-pwd" placeholder="Senha" required>
+      </div>
+      <button type="submit" class="btn-in">Entrar</button>
+      <div class="lerr" id="lerr">E-mail ou senha incorretos.</div>
+    </form>
+    <div class="ldem">
+      <p>Usuários de demonstração (clique para preencher)</p>
+      <button type="button" class="dbt" onclick="fillDemo('admin@exemplo.dev')">Administrador — admin@exemplo.dev / demo</button>
+      <button type="button" class="dbt" onclick="fillDemo('diretoria@exemplo.dev')">Diretoria (vê tudo) — diretoria@exemplo.dev / demo</button>
+      <button type="button" class="dbt" onclick="fillDemo('joao@exemplo.dev')">Responsável — joao@exemplo.dev / demo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===========================================================
+     APP PRINCIPAL
+============================================================ -->
+<div id="app">
+
+  <!-- Header -->
+  <header>
+    <img class="h-logo" id="hdr-logo" alt="Logo">
+    <div class="h-names">
+      <div class="h-name">Painel de Metas</div>
+      <div class="h-sub-hd">Empresa Exemplo</div>
+    </div>
+    <div class="h-sep"></div>
+    <span id="mode-badge" class="mode-badge">DEMO</span>
+    <div class="h-flex"></div>
+    <div class="h-user">
+      <div class="h-uname" id="hdr-uname">—</div>
+      <div class="h-urole" id="hdr-urole">—</div>
+    </div>
+    <div class="h-avatar" id="hdr-avatar">?</div>
+    <button class="h-btn" onclick="doLogout()">Sair</button>
+  </header>
+
+  <!-- Subbar / breadcrumb -->
+  <div id="sb">
+    <div class="sb-crumb" id="breadcrumb">
+      <a onclick="showIndex()">Início</a>
+    </div>
+    <div class="sb-ano" id="sb-ano">Exercício 2026</div>
+  </div>
+
+  <!-- Layout principal -->
+  <div id="main">
+
+    <!-- Sidebar de navegação -->
+    <div id="nav">
+      <div class="nav-hd">
+        <div class="nav-hd-t">Indicadores (KPIs)</div>
+      </div>
+      <div class="nav-inner" id="nav-inner"></div>
+    </div>
+
+    <!-- Área de conteúdo -->
+    <div id="content">
+
+      <!-- VIEW: INDEX -->
+      <div id="view-index">
+        <div class="index-welcome">
+          <h2 id="welcome-msg">Painel de Metas Corporativas</h2>
+          <p id="welcome-sub">Selecione um indicador para visualizar e editar as metas.</p>
+        </div>
+        <div id="index-areas"></div>
+      </div>
+
+      <!-- VIEW: KPI DETAIL -->
+      <div id="view-kpi">
+
+        <div class="kpi-header">
+          <div>
+            <div class="khd-code" id="kpi-code-hd">—</div>
+            <div class="khd-name" id="kpi-name-hd">—</div>
+            <div class="khd-fields">
+              <div class="khd-field">
+                <span class="khd-label">Responsável</span>
+                <span class="khd-val" id="kpi-resp-hd">—</span>
+              </div>
+              <div class="khd-field">
+                <span class="khd-label">Diretoria</span>
+                <span class="khd-val" id="kpi-dir-hd">—</span>
+              </div>
+              <div class="khd-field">
+                <span class="khd-label">Área</span>
+                <span class="khd-val" id="kpi-area-hd">—</span>
+              </div>
+              <div class="khd-field">
+                <span class="khd-label">Período</span>
+                <span class="khd-val" id="kpi-periodo-hd">Jan – Dez 2026</span>
+              </div>
+            </div>
+          </div>
+          <div class="khd-btns">
+            <button class="btn-edit-kpi" id="btn-edit-kpi" onclick="openKpiEdit()" style="display:none">Editar indicador</button>
+            <button class="btn-back" onclick="showIndex()">← Voltar</button>
+          </div>
+        </div>
+
+        <!-- Cards superiores -->
+        <div class="kpi-cards-row" id="kpi-cards-row"></div>
+
+        <!-- Seção: Metas -->
+        <div class="section">
+          <div class="sec-hd">
+            <div>
+              <div class="sec-title">Metas do indicador</div>
+              <div class="sec-sub" id="metas-periodo-sub">Acumulado até o último mês realizado</div>
+            </div>
+            <div class="sec-btns" id="sec-btns-metas"></div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl" id="metas-table">
+              <thead>
+                <tr>
+                  <th style="width:30px">#</th>
+                  <th>Meta</th>
+                  <th class="tbl-c">Direção</th>
+                  <th class="tbl-c">Peso</th>
+                  <th class="tbl-r">Meta acum.</th>
+                  <th class="tbl-r">Real. acum.</th>
+                  <th class="tbl-c" style="min-width:90px">Atingimento</th>
+                  <th class="tbl-c">Pontuação</th>
+                  <th class="tbl-c" style="min-width:100px">Meses</th>
+                  <th class="tbl-c">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="metas-tbody">
+                <tr><td colspan="10" class="empty-state"><div class="empty-state-icon">[graf]</div><div class="empty-state-t">Nenhuma meta carregada</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Seção: Projetos -->
+        <div class="section">
+          <div class="sec-hd">
+            <div>
+              <div class="sec-title">Projetos e iniciativas</div>
+              <div class="sec-sub">Vinculados às metas deste indicador</div>
+            </div>
+            <div class="sec-btns" id="sec-btns-proj"></div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="proj-tbl" id="proj-table">
+              <thead>
+                <tr>
+                  <th>Projeto / Iniciativa</th>
+                  <th>Meta vinculada</th>
+                  <th class="tbl-c">Status</th>
+                  <th class="tbl-c">Prioridade</th>
+                  <th class="tbl-c">Prazo</th>
+                  <th class="tbl-c" style="min-width:90px">Progresso</th>
+                  <th>Próxima ação</th>
+                  <th class="tbl-c">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="proj-tbody">
+                <tr><td colspan="8" class="empty-state"><div class="empty-state-icon">[lista]</div><div class="empty-state-t">Nenhum projeto cadastrado</div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /view-kpi -->
+
+      <!-- VIEW: GERENCIAR ACESSOS (somente admin) -->
+      <div id="view-users">
+        <div class="index-welcome">
+          <h2>Gerenciamento de acessos</h2>
+          <p>Adicione, edite ou remova usuários e configure quais indicadores cada um pode acessar.</p>
+        </div>
+        <div class="section">
+          <div class="sec-hd">
+            <div><div class="sec-title">Usuários cadastrados</div></div>
+            <div class="sec-btns">
+              <button class="sec-btn primary" onclick="openUserModal(null)">+ Novo usuário</button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th class="tbl-c">Perfil</th>
+                  <th>Indicadores com acesso</th>
+                  <th class="tbl-c">Status</th>
+                  <th class="tbl-c">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">[user]</div><div class="empty-state-t">Carregando...</div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /view-users -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ===========================================================
+     DRAWER — Edição de meta
+============================================================ -->
+<div id="drawer-overlay" onclick="closeDrawer()"></div>
+<div id="drawer">
+  <div class="drw-hd">
+    <div>
+      <div class="drw-hd-t" id="drw-title">Editar meta</div>
+      <div class="drw-hd-s" id="drw-sub">—</div>
+    </div>
+    <button class="drw-close" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="drw-tabs">
+    <button class="drw-tab on" onclick="switchDrawerTab('dados',this)">Dados da meta</button>
+    <button class="drw-tab" onclick="switchDrawerTab('realizado',this)">Realizado mensal</button>
+    <button class="drw-tab" onclick="switchDrawerTab('obs',this)">Observações</button>
+  </div>
+  <div class="drw-body">
+
+    <!-- Tab: Dados da meta -->
+    <div id="drw-tab-dados">
+      <div class="fg">
+        <div class="fgt">Identificação</div>
+        <div class="fr s1">
+          <div class="fi"><label>Nome da meta</label>
+            <input type="text" id="drw-nome" class="dirty">
+          </div>
+        </div>
+        <div class="fr s1">
+          <div class="fi"><label>Responsável</label>
+            <input type="text" id="drw-resp" class="dirty">
+          </div>
+        </div>
+        <div class="fr s1">
+          <div class="fi"><label>Descrição / critério de apuração</label>
+            <textarea id="drw-desc" rows="2" class="dirty" placeholder="Descreva o critério de apuração desta meta..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="fgt">Parâmetros</div>
+        <div class="fr">
+          <div class="fi"><label>Tipo de formato</label>
+            <select id="drw-formato" class="dirty">
+              <option value="inteiro">Número inteiro</option>
+              <option value="percentual">Percentual</option>
+              <option value="monetario">Valor monetário (R$)</option>
+              <option value="decimal">Decimal</option>
+            </select>
+          </div>
+          <div class="fi"><label>Bom quando</label>
+            <select id="drw-bom" class="dirty">
+              <option value="maior">Maior (melhor)</option>
+              <option value="menor">Menor (melhor)</option>
+            </select>
+          </div>
+        </div>
+        <div class="fr">
+          <div class="fi"><label>Fórmula do atingimento</label>
+            <select id="drw-formula" class="dirty">
+              <option value="real_sobre_meta">Realizado ÷ Meta</option>
+              <option value="meta_sobre_real">Meta ÷ Realizado</option>
+            </select>
+          </div>
+          <div class="fi"><label>Acumulado</label>
+            <select id="drw-acumulado" class="dirty">
+              <option value="soma">Somar (total acumulado)</option>
+              <option value="media">Média (valor médio)</option>
+            </select>
+          </div>
+        </div>
+        <div class="fr">
+          <div class="fi"><label>Peso da meta (0 a 1)</label>
+            <input type="number" id="drw-peso" step="0.1" min="0" max="1" class="dirty">
+          </div>
+          <div class="fi"><label>Status</label>
+            <select id="drw-status" class="dirty">
+              <option value="Ativa">Ativa</option>
+              <option value="Suspensa">Suspensa</option>
+              <option value="Concluída">Concluída</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="fgt">Meta mensal (valores planejados)</div>
+        <div class="months-list" id="drw-meta-grid"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Realizado mensal -->
+    <div id="drw-tab-realizado" style="display:none">
+      <div class="fg">
+        <div class="fgt">Valores realizados — 2026</div>
+        <p style="font-size:11px;color:#aaa;margin-bottom:12px">Preencha os meses com valores realizados. Deixe em branco os meses não apurados.</p>
+        <div class="months-list" id="drw-real-grid"></div>
+      </div>
+      <div class="fg" style="margin-top:8px">
+        <div class="fgt">Resumo do período</div>
+        <div id="drw-resumo" style="font-size:12px;color:#666;line-height:1.8"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Observações -->
+    <div id="drw-tab-obs" style="display:none">
+      <div class="fg">
+        <div class="fgt">Observações da meta</div>
+        <div class="fr s1">
+          <div class="fi"><label>Observações</label>
+            <textarea id="drw-obs" rows="5" placeholder="Registre comentários, justificativas ou pontos de atenção sobre esta meta..." class="dirty"></textarea>
+          </div>
+        </div>
+        <div class="fr s1">
+          <div class="fi"><label>Última atualização</label>
+            <input type="text" id="drw-ult-at" readonly>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /drw-body -->
+  <div class="drw-act">
+    <button class="btn-delete" id="btn-meta-delete" onclick="deleteMetaFromDrawer()" style="display:none">Excluir meta</button>
+    <button class="btn-cancel" onclick="closeDrawer()">Cancelar</button>
+    <button class="btn-save" onclick="saveDrawer()">Salvar alterações</button>
+  </div>
+</div><!-- /drawer -->
+
+<!-- ===========================================================
+     MODAL — Novo / editar projeto
+============================================================ -->
+<div class="overlay" id="proj-modal">
+  <div class="modal">
+    <div class="mhd">
+      <div class="mhd-t" id="modal-title">Novo projeto</div>
+      <button class="mhd-x" onclick="closeModal()">×</button>
+    </div>
+    <div class="mbd">
+      <input type="hidden" id="proj-id">
+      <div class="fg">
+        <div class="fgt">Identificação</div>
+        <div class="fr s1">
+          <div class="fi"><label>Nome do projeto / iniciativa *</label>
+            <input type="text" id="proj-nome" placeholder="Ex.: Redução de custos operacionais — Fase 1">
+          </div>
+        </div>
+        <div class="fr s1">
+          <div class="fi"><label>Descrição</label>
+            <textarea id="proj-desc" rows="2" placeholder="Descreva o objetivo e escopo do projeto..."></textarea>
+          </div>
+        </div>
+        <div class="fr">
+          <div class="fi"><label>Meta vinculada *</label>
+            <select id="proj-meta-sel">
+              <option value="">— Selecione —</option>
+            </select>
+          </div>
+          <div class="fi"><label>Responsável</label>
+            <input type="text" id="proj-resp" placeholder="Nome do responsável">
+          </div>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="fgt">Status e progresso</div>
+        <div class="fr s3">
+          <div class="fi"><label>Status</label>
+            <select id="proj-status">
+              <option value="Não iniciado">Não iniciado</option>
+              <option value="Em andamento">Em andamento</option>
+              <option value="Em atraso">Em atraso</option>
+              <option value="Concluído">Concluído</option>
+              <option value="Suspenso">Suspenso</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+          </div>
+          <div class="fi"><label>Prioridade</label>
+            <select id="proj-prio">
+              <option value="Alta">Alta</option>
+              <option value="Média">Média</option>
+              <option value="Baixa">Baixa</option>
+            </select>
+          </div>
+          <div class="fi"><label>Prazo</label>
+            <input type="date" id="proj-prazo">
+          </div>
+        </div>
+        <div class="fr">
+          <div class="fi"><label>% de conclusão (0–100)</label>
+            <input type="number" id="proj-pct" min="0" max="100" placeholder="0">
+          </div>
+          <div class="fi"><label>Responsável pela ação</label>
+            <input type="text" id="proj-resp-acao" placeholder="Nome">
+          </div>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="fgt">Próximos passos</div>
+        <div class="fr s1">
+          <div class="fi"><label>Próxima ação</label>
+            <input type="text" id="proj-prox-acao" placeholder="Descreva a próxima ação concreta...">
+          </div>
+        </div>
+        <div class="fr s1">
+          <div class="fi"><label>Observações</label>
+            <textarea id="proj-obs" rows="2" placeholder="Riscos, dependências, comentários..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn-delete" id="btn-proj-delete" onclick="deleteProjectFromModal()" style="display:none">Excluir projeto</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveProject()">Salvar projeto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar indicador -->
+<div class="overlay" id="kpi-edit-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="mhd">
+      <div class="mhd-t">Editar cabeçalho do indicador</div>
+      <button class="mhd-x" onclick="closeKpiEdit()">×</button>
+    </div>
+    <div class="mbd">
+      <div class="fg">
+        <div class="fr s1">
+          <div class="fi"><label>Nome do indicador</label>
+            <input type="text" id="kpi-edit-nome" placeholder="Ex.: Indicador Administração">
+          </div>
+        </div>
+        <div class="fr">
+          <div class="fi"><label>Responsável (separe por vírgula)</label>
+            <input type="text" id="kpi-edit-resp" placeholder="Nome do responsável">
+          </div>
+          <div class="fi"><label>Diretoria</label>
+            <input type="text" id="kpi-edit-dir" placeholder="Nome da diretoria">
+          </div>
+        </div>
+        <div class="fr">
+          <div class="fi"><label>Área</label>
+            <input type="text" id="kpi-edit-area" placeholder="Ex.: ADMINISTRATIVO">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn-cancel" onclick="closeKpiEdit()">Cancelar</button>
+      <button class="btn-save" onclick="saveKpiEdit()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal gerenciar usuário -->
+<div class="overlay" id="user-modal">
+  <div class="modal usr-modal">
+    <div class="mhd">
+      <div class="mhd-t" id="user-modal-title">Novo usuário</div>
+      <button class="mhd-x" onclick="closeUserModal()">×</button>
+    </div>
+    <div class="mbd usr-mbd">
+      <div class="fg">
+        <div class="fgt">Identificação</div>
+        <div class="fr">
+          <div class="fi"><label>Nome completo *</label>
+            <input type="text" id="usr-nome" placeholder="Ex.: Maria Souza">
+          </div>
+          <div class="fi"><label>E-mail *</label>
+            <input type="email" id="usr-email" placeholder="nome@exemplo.dev">
+          </div>
+        </div>
+        <div class="fr">
+          <div class="fi">
+            <label>Senha <span id="usr-pwd-hint" class="usr-hint">(deixe vazio para manter)</span></label>
+            <input type="text" id="usr-pwd" placeholder="Nova senha" autocomplete="new-password">
+          </div>
+          <div class="fi"><label>Perfil de acesso *</label>
+            <select id="usr-perfil" onchange="onUserPerfilChange()">
+              <option value="Responsavel">Responsável (por indicador)</option>
+              <option value="DiretorN1">Diretoria — vê todos</option>
+              <option value="Admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+        <div class="fr">
+          <div class="fi"><label>Status</label>
+            <select id="usr-ativo">
+              <option value="true">Ativo</option>
+              <option value="false">Inativo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="fg" id="usr-kpis-section">
+        <div class="fgt">Indicadores com acesso</div>
+        <p class="usr-kpi-hint">Marque os indicadores que este usuário pode visualizar e editar.</p>
+        <div id="usr-kpis-list"></div>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn-delete" id="btn-user-delete" onclick="deleteUserConfirm()" style="display:none">Excluir</button>
+      <button class="btn-cancel" onclick="closeUserModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveUser()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ===========================================================
+     SCRIPTS (ordem de carregamento)
+     Demo 100% local: nenhuma chamada de rede ou backend.
+============================================================ -->
+<script src="js/data.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+# Dependências
+node_modules/
+.pnp/
+# Build
+.next/
+out/
+dist/
+build/
+.wrangler/
+# Ambiente / segredos (NUNCA versionar)
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+# Sistema
+.DS_Store
+Thumbs.db
+*.log

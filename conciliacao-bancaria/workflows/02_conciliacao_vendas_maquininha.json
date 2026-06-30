@@ -1,0 +1,357 @@
+{
+  "name": "02 - Conciliacao de Vendas (Maquininha x ERP)",
+  "nodes": [
+    {
+      "id": "trigger-cron",
+      "name": "Cron 07h30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [0, -120],
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "30 7 * * 1-5" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "trigger-webhook",
+      "name": "Webhook Manual",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [0, 120],
+      "webhookId": "conciliacao-vendas-maquininha",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "conciliacao-vendas-maquininha",
+        "responseMode": "lastNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "fn-datas",
+      "name": "Calcular Datas D-1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [260, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const hoje = new Date();\nconst d1 = new Date(hoje);\nd1.setDate(d1.getDate() - 1);\n\nconst pad = n => String(n).padStart(2, '0');\nconst ano = d1.getFullYear();\nconst mes = pad(d1.getMonth() + 1);\nconst dia = pad(d1.getDate());\nconst dataInicio = `${ano}-${mes}-${dia}`;\n\nreturn [{\n  json: {\n    dataInicio,\n    dataFim: dataInicio,\n    dataFormatadaBR: `${dia}/${mes}/${ano}`,\n    dataHoraExecucao: new Date().toLocaleTimeString('pt-BR'),\n    inicioExecucao: Date.now(),\n    ano: String(ano),\n    mes\n  }\n}];"
+      }
+    },
+    {
+      "id": "fn-consultas",
+      "name": "Preparar Consulta SQL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const datas = $input.first().json;\n\n// Query generica do ERP: vendas em cartao com NSU e codigo de autorizacao\nconst linhas = [\n  'SELECT',\n  '    v.id_venda,',\n  '    v.cod_loja                AS Loja,',\n  '    v.data_emissao            AS Data_Emissao,',\n  '    v.numero_documento        AS Numero_Documento,',\n  '    v.tipo_documento          AS Tipo_Documento,',\n  '    fp.descricao              AS Forma_Pagamento,',\n  '    p.valor                   AS Valor_Pagamento,',\n  '    u.nome                    AS Usuario,',\n  '    c.numero_autorizacao      AS Numero_Autorizacao,',\n  '    c.nsu                     AS NSU',\n  'FROM venda v',\n  'LEFT JOIN pagamento p          ON p.id_venda      = v.id_venda',\n  'LEFT JOIN forma_pagamento fp   ON fp.id           = p.id_forma_pagamento',\n  'LEFT JOIN usuario u            ON u.id            = v.id_usuario',\n  'LEFT JOIN cartao_autorizacao c ON c.id_pagamento  = p.id_pagamento',\n  'WHERE',\n  `    v.data_emissao >= '${datas.dataInicio}'`,\n  `    AND v.data_emissao < DATEADD(day, 1, CAST('${datas.dataInicio}' AS DATE))`,\n  \"    AND v.tipo_operacao = 'VENDA'\",\n  \"    AND fp.categoria = 'CARTAO'\",\n  '    AND c.numero_autorizacao IS NOT NULL',\n  'ORDER BY v.data_emissao DESC, v.numero_documento DESC'\n];\n\nreturn [{ json: { ...datas, sqlQuery: linhas.join('\\n') } }];"
+      }
+    },
+    {
+      "id": "adquirente-oauth",
+      "name": "Adquirente - Autenticacao OAuth",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [740, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 30000,
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ADQUIRENTE_BASE_URL }}/oauth/token",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type",  "value": "application/x-www-form-urlencoded" },
+            { "name": "Authorization", "value": "=Basic {{ $env.ADQUIRENTE_BASIC_AUTH }}" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "grant_type", "value": "password" },
+            { "name": "username",   "value": "={{ $env.ADQUIRENTE_USERNAME }}" },
+            { "name": "password",   "value": "={{ $env.ADQUIRENTE_PASSWORD }}" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "adquirente-vendas",
+      "name": "Adquirente - Buscar Vendas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [980, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 30000,
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.ADQUIRENTE_BASE_URL }}/merchant-statement/v1/sales",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $('Adquirente - Autenticacao OAuth').first().json.access_token }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "merchantNumber", "value": "={{ $env.ADQUIRENTE_MERCHANT_NUMBER }}" },
+            { "name": "startDate",      "value": "={{ $('Preparar Consulta SQL').first().json.dataInicio }}" },
+            { "name": "endDate",        "value": "={{ $('Preparar Consulta SQL').first().json.dataFim }}" },
+            { "name": "size",           "value": "100" }
+          ]
+        },
+        "pagination": {
+          "paginationMode": "updateAParameterInEachRequest",
+          "parameters": {
+            "parameters": [
+              { "type": "qs", "name": "pageKey", "value": "={{ $response.body.cursor?.nextKey || '' }}" }
+            ]
+          },
+          "paginationCompleteWhen": "other",
+          "completeExpression": "={{ $response.body.cursor?.hasNextKey === false || !$response.body.content?.transactions || $response.body.content.transactions.length === 0 }}",
+          "limitPagesFetched": true,
+          "maxRequests": 50
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "sql-erp-vendas",
+      "name": "ERP - SQL Vendas",
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1,
+      "position": [1220, 0],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $('Preparar Consulta SQL').first().json.sqlQuery }}"
+      },
+      "credentials": {
+        "microsoftSql": {
+          "id": "",
+          "name": "ERP SQL Server (placeholder)"
+        }
+      }
+    },
+    {
+      "id": "fn-confronto",
+      "name": "Confronto NSU + MDR",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1460, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// ============================================================\n// CONFRONTO ADQUIRENTE (maquininha) vs ERP\n//\n// Estrutura esperada da resposta da adquirente:\n//   { content: { transactions: [...] }, cursor: { hasNextKey: bool, nextKey: str } }\n//\n// Chave 1 (principal): numero de autorizacao\n//   Adquirente: authorizationCode (int, pode ser 0)\n//               -> fallback: strAuthorizationCode (string)\n//   ERP:        Numero_Autorizacao\n//\n// Chave 2 (fallback): NSU\n//   Adquirente: nsu (int) | ERP: NSU\n//\n// Valor da venda (amount) e o valor bruto em R$ (nao centavos).\n// MDR (discountAmount) e a taxa retida pela adquirente.\n// Regra: valor_erp deve bater com valor_bruto (venda registrada).\n// Tolerancia de R$ 0,01; diferencas de centavo no MDR sao OK.\n// ============================================================\n\nconst pages = $('Adquirente - Buscar Vendas').all();\nconst todasTransacoes = [];\npages.forEach(page => {\n  const transactions = page.json?.content?.transactions || [];\n  todasTransacoes.push(...transactions);\n});\n\nconst erpList = $input.all().map(i => i.json);\n\nconst resultado = {\n  ok: [], okArredondamento: [], divergentes: [],\n  naoEncontradosAdq: [], naoEncontradosERP: [], cancelados: []\n};\n\n// Mapa de bandeiras (codigos genericos de exemplo)\nconst BANDEIRAS = {\n  1: 'Bandeira A', 2: 'Bandeira B', 3: 'Bandeira C',\n  4: 'Bandeira D', 5: 'Bandeira E', 6: 'Bandeira F'\n};\n\nfunction normAdq(r) {\n  let authCode = '';\n  if (r.authorizationCode !== undefined && r.authorizationCode !== 0) {\n    authCode = String(r.authorizationCode).trim();\n  } else if (r.strAuthorizationCode) {\n    authCode = String(r.strAuthorizationCode).trim();\n  }\n  return {\n    nsu:                String(r.nsu || '').trim(),\n    numero_autorizacao: authCode,\n    bandeira:           BANDEIRAS[r.brandCode] || `Cod ${r.brandCode || '?'}`,\n    modalidade:         r.modality?.type    || '',\n    produto:            r.modality?.product || '',\n    parcelas:           r.installmentQuantity || 1,\n    valor_bruto:        Number(r.amount)         || 0,\n    valor_liquido:      Number(r.netAmount)      || 0,\n    valor_mdr:          Number(r.discountAmount) || 0,\n    taxa_mdr_pct:       Number(r.mdrFee)         || 0,\n    data_transacao:     r.saleDate || r.movementDate || '',\n    status:             (r.status || '').toUpperCase(),\n    numero_terminal:    r.device || r.tid || '',\n    tipo_captura:       r.captureType || ''\n  };\n}\n\nconst adqList = todasTransacoes.map(normAdq);\n\nconst adqAtivas = adqList.filter(r => {\n  if (['CANCELADA','CANCELLED','CANCELADO','CANCELED'].includes(r.status)) {\n    resultado.cancelados.push(r);\n    return false;\n  }\n  return true;\n});\n\nconst erpMapAuth = {};\nconst erpMapNSU  = {};\nerpList.forEach(i => {\n  const auth = String(i.Numero_Autorizacao || '').trim();\n  const nsu  = String(i.NSU || '').trim();\n  if (auth) erpMapAuth[auth] = i;\n  if (nsu)  erpMapNSU[nsu]   = i;\n});\n\nconst authConfrontados = new Set();\n\nadqAtivas.forEach(adq => {\n  let erp = erpMapAuth[adq.numero_autorizacao];\n  if (!erp && adq.nsu) erp = erpMapNSU[adq.nsu];\n\n  if (!erp) {\n    resultado.naoEncontradosAdq.push({\n      numero_autorizacao: adq.numero_autorizacao,\n      nsu:                adq.nsu,\n      bandeira:           adq.bandeira,\n      modalidade:         adq.modalidade,\n      produto:            adq.produto,\n      parcelas:           adq.parcelas,\n      tipo_captura:       adq.tipo_captura,\n      valor_adq:          adq.valor_bruto,\n      valor_mdr:          adq.valor_mdr,\n      data:               adq.data_transacao,\n      numero_terminal:    adq.numero_terminal,\n      status_conciliacao: 'NAO ENCONTRADO NO ERP'\n    });\n    return;\n  }\n\n  authConfrontados.add(String(erp.Numero_Autorizacao || '').trim());\n\n  const valorAdq       = adq.valor_bruto;\n  const valorERP       = Number(erp.Valor_Pagamento);\n  const valorMDR       = adq.valor_mdr;\n  const diff           = Math.abs(valorAdq - valorERP);\n  const calculoLiquido = valorAdq - valorMDR;\n  const arredondamento = Math.abs(calculoLiquido - valorERP);\n\n  const base = {\n    numero_autorizacao: adq.numero_autorizacao,\n    nsu:                adq.nsu,\n    numero_documento:   erp.Numero_Documento,\n    tipo_documento:     erp.Tipo_Documento,\n    numero_terminal:    adq.numero_terminal,\n    tipo_captura:       adq.tipo_captura,\n    bandeira:           adq.bandeira,\n    modalidade:         adq.modalidade,\n    produto:            adq.produto,\n    parcelas:           adq.parcelas,\n    usuario:            erp.Usuario,\n    forma_pagamento:    erp.Forma_Pagamento,\n    valor_adq:          valorAdq,\n    valor_erp:          valorERP,\n    diferenca:          parseFloat((valorAdq - valorERP).toFixed(2)),\n    calculo_liquido:    parseFloat(calculoLiquido.toFixed(4)),\n    valor_mdr:          valorMDR,\n    taxa_mdr_pct:       adq.taxa_mdr_pct,\n    data:               adq.data_transacao\n  };\n\n  if (diff < 0.01) {\n    resultado.ok.push({ ...base, status_conciliacao: 'OK' });\n  } else if (arredondamento < 0.01) {\n    resultado.okArredondamento.push({ ...base, status_conciliacao: 'OK (ARREDONDAMENTO MDR)' });\n  } else {\n    resultado.divergentes.push({ ...base, status_conciliacao: 'DIVERGENTE' });\n  }\n});\n\nerpList.forEach(erp => {\n  const auth = String(erp.Numero_Autorizacao || '').trim();\n  if (auth && !authConfrontados.has(auth)) {\n    resultado.naoEncontradosERP.push({\n      numero_autorizacao: erp.Numero_Autorizacao,\n      nsu:                erp.NSU,\n      numero_documento:   erp.Numero_Documento,\n      tipo_documento:     erp.Tipo_Documento,\n      forma_pagamento:    erp.Forma_Pagamento,\n      usuario:            erp.Usuario,\n      valor_erp:          erp.Valor_Pagamento,\n      data:               erp.Data_Emissao,\n      status_conciliacao: 'NAO ENCONTRADO NA ADQUIRENTE'\n    });\n  }\n});\n\nconsole.log(`[Confronto] OK=${resultado.ok.length} | Arred=${resultado.okArredondamento.length} | Div=${resultado.divergentes.length} | s/ERP=${resultado.naoEncontradosAdq.length} | s/Adq=${resultado.naoEncontradosERP.length} | Cancel=${resultado.cancelados.length}`);\n\nreturn [{ json: resultado }];"
+      }
+    },
+    {
+      "id": "fn-excel",
+      "name": "Gerar Excel",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1700, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const XLSX = require('xlsx');\n\nconst dados = $input.first().json;\nconst datas = $('Calcular Datas D-1').first().json;\n\nfunction linhaDiv(item) {\n  return {\n    'NSU':              item.nsu || '',\n    'No Autorizacao':   item.numero_autorizacao || '',\n    'Terminal':         item.numero_terminal || '',\n    'Tipo Captura':     item.tipo_captura || '',\n    'Bandeira':         item.bandeira || '',\n    'Modalidade':       item.modalidade || '',\n    'Produto':          item.produto || '',\n    'Data':             item.data || '',\n    'Valor Adq (R$)':   item.valor_adq || 0,\n    'Valor ERP (R$)':   item.valor_erp || 0,\n    'Diferenca (R$)':   item.diferenca || 0,\n    'MDR (R$)':         item.valor_mdr || 0,\n    'MDR (%)':          item.taxa_mdr_pct || 0,\n    'Status':           item.status_conciliacao\n  };\n}\n\nfunction linhaCompleta(item) {\n  return {\n    'NSU':              item.nsu || '',\n    'No Autorizacao':   item.numero_autorizacao || '',\n    'Terminal':         item.numero_terminal || '',\n    'Tipo Captura':     item.tipo_captura || '',\n    'Bandeira':         item.bandeira || '',\n    'Modalidade':       item.modalidade || '',\n    'Produto':          item.produto || '',\n    'Parcelas':         item.parcelas || '',\n    'Data':             item.data || '',\n    'Usuario ERP':      item.usuario || '',\n    'No Documento':     item.numero_documento || '',\n    'Tipo Documento':   item.tipo_documento || '',\n    'Forma Pagamento':  item.forma_pagamento || '',\n    'Valor Adq (R$)':   item.valor_adq || 0,\n    'Valor ERP (R$)':   item.valor_erp || 0,\n    'Diferenca (R$)':   item.diferenca || 0,\n    'Calculo Liquido':  item.calculo_liquido || 0,\n    'MDR (R$)':         item.valor_mdr || 0,\n    'MDR (%)':          item.taxa_mdr_pct || 0,\n    'Arredondamento MDR': item.status_conciliacao === 'OK (ARREDONDAMENTO MDR)' ? 'Sim' : 'Nao',\n    'Status':           item.status_conciliacao\n  };\n}\n\nconst linhasDivergencias = [\n  ...dados.divergentes,\n  ...dados.naoEncontradosAdq,\n  ...dados.naoEncontradosERP\n].map(linhaDiv);\n\nconst todasLinhas = [\n  ...dados.ok,\n  ...dados.okArredondamento,\n  ...dados.divergentes,\n  ...dados.naoEncontradosAdq,\n  ...dados.naoEncontradosERP\n].map(linhaCompleta);\n\nconst wb = XLSX.utils.book_new();\n\nconst wsDiv = XLSX.utils.json_to_sheet(\n  linhasDivergencias.length > 0\n    ? linhasDivergencias\n    : [{ 'Resultado': 'Nenhuma divergencia encontrada', 'Data': datas.dataFormatadaBR }]\n);\nconst wsComp = XLSX.utils.json_to_sheet(\n  todasLinhas.length > 0\n    ? todasLinhas\n    : [{ 'Resultado': 'Nenhuma transacao processada', 'Data': datas.dataFormatadaBR }]\n);\n\nXLSX.utils.book_append_sheet(wb, wsDiv,  'Divergencias');\nXLSX.utils.book_append_sheet(wb, wsComp, 'Confronto Completo');\n\nconst buffer      = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });\nconst nomeArquivo = `Conciliacao_Vendas_${datas.dataInicio}.xlsx`;\n\nreturn [{\n  json: {\n    nomeArquivo,\n    pastaAno:          datas.ano,\n    pastaMes:          datas.mes,\n    dataInicio:        datas.dataInicio,\n    totalLinhas:       todasLinhas.length,\n    totalDivergencias: linhasDivergencias.length\n  },\n  binary: {\n    data: {\n      data:     buffer.toString('base64'),\n      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',\n      fileName: nomeArquivo\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "graph-auth",
+      "name": "MS Graph - Auth",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1940, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://login.microsoftonline.com/{{ $env.MS_TENANT_ID }}/oauth2/v2.0/token",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/x-www-form-urlencoded" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "grant_type",    "value": "client_credentials" },
+            { "name": "client_id",     "value": "={{ $env.MS_CLIENT_ID }}" },
+            { "name": "client_secret", "value": "={{ $env.MS_CLIENT_SECRET }}" },
+            { "name": "scope",         "value": "https://graph.microsoft.com/.default" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "sharepoint-upload",
+      "name": "SharePoint - Upload Arquivo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2180, 0],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 30000,
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://graph.microsoft.com/v1.0/sites/{{ $env.SHAREPOINT_SITE_ID }}/drive/root:/Conciliacoes/Vendas/{{ $('Gerar Excel').first().json.pastaAno }}-{{ $('Gerar Excel').first().json.pastaMes }}/{{ $('Gerar Excel').first().json.nomeArquivo }}:/content",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $('MS Graph - Auth').first().json.access_token }}" },
+            { "name": "Content-Type",  "value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      }
+    },
+    {
+      "id": "fn-msg-teams",
+      "name": "Preparar Mensagem Teams",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2420, 0],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const dados   = $('Confronto NSU + MDR').first().json;\nconst datas   = $('Calcular Datas D-1').first().json;\nconst arquivo = $('Gerar Excel').first().json;\nconst spResp  = $('SharePoint - Upload Arquivo').first().json;\n\nconst total = dados.ok.length + dados.okArredondamento.length\n            + dados.divergentes.length + dados.naoEncontradosAdq.length\n            + dados.naoEncontradosERP.length;\n\nconst somar = (arr, campo) => arr.reduce((s, i) => s + (Number(i[campo]) || 0), 0);\n\nconst valorBrutoAdq = somar([...dados.ok, ...dados.okArredondamento, ...dados.divergentes, ...dados.naoEncontradosAdq], 'valor_adq');\nconst valorERP      = somar([...dados.ok, ...dados.okArredondamento, ...dados.divergentes, ...dados.naoEncontradosERP], 'valor_erp');\nconst diferencaLiq  = valorBrutoAdq - valorERP;\n\nconst temDiv = dados.divergentes.length > 0 || dados.naoEncontradosAdq.length > 0 || dados.naoEncontradosERP.length > 0;\nconst cor    = temDiv ? 'FF8C00' : '00B050';\nconst titulo = temDiv\n  ? `Conciliacao de Vendas - ${datas.dataFormatadaBR} - ATENCAO: ha divergencias`\n  : `Conciliacao de Vendas - ${datas.dataFormatadaBR} - Conciliado sem divergencias`;\n\nconst linkArquivo = spResp?.webUrl || arquivo.nomeArquivo;\nconst tempoTotal  = Math.round((Date.now() - datas.inicioExecucao) / 1000);\n\nconst card = {\n  '@type':    'MessageCard',\n  '@context': 'http://schema.org/extensions',\n  themeColor: cor,\n  summary:    `Conciliacao Vendas ${datas.dataFormatadaBR}`,\n  sections: [{\n    activityTitle:    titulo,\n    activitySubtitle: 'Resultado automatico - Contas a Receber',\n    facts: [\n      { name: 'Vendas OK:',                value: String(dados.ok.length) },\n      { name: 'Arredondamento MDR:',       value: `${dados.okArredondamento.length} (centavos - OK)` },\n      { name: 'Divergencias reais:',       value: String(dados.divergentes.length) },\n      { name: 'Nao no ERP:',               value: String(dados.naoEncontradosAdq.length) },\n      { name: 'Nao na adquirente:',        value: String(dados.naoEncontradosERP.length) },\n      { name: 'Canceladas (excluidas):',   value: String(dados.cancelados.length) },\n      { name: 'Total confrontado:',        value: String(total) },\n      { name: 'Valor bruto adquirente:',   value: `R$ ${valorBrutoAdq.toFixed(2)}` },\n      { name: 'Valor ERP:',                value: `R$ ${valorERP.toFixed(2)}` },\n      { name: 'Diferenca liquida:',        value: `R$ ${diferencaLiq.toFixed(2)}` },\n      { name: 'Arquivo:',                  value: linkArquivo },\n      { name: `Execucao ${datas.dataHoraExecucao}`, value: `${tempoTotal}s` }\n    ]\n  }]\n};\n\nreturn [{ json: { payload: JSON.stringify(card) } }];"
+      }
+    },
+    {
+      "id": "teams-alert",
+      "name": "Teams - Notificacao",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2660, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.TEAMS_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "string",
+        "body": "={{ $json.payload }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "error-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 500],
+      "parameters": {}
+    },
+    {
+      "id": "error-handler",
+      "name": "Teams - Alerta Erro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.TEAMS_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={\n  \"@type\": \"MessageCard\",\n  \"@context\": \"http://schema.org/extensions\",\n  \"themeColor\": \"FF0000\",\n  \"summary\": \"ERRO - Conciliacao de Vendas\",\n  \"sections\": [{\n    \"activityTitle\": \"ERRO - Conciliacao de Vendas\",\n    \"activitySubtitle\": \"Falha na execucao automatica - verificar\",\n    \"facts\": [\n      {\"name\": \"No com erro:\", \"value\": \"{{ $json.error?.node?.name || 'desconhecido' }}\"},\n      {\"name\": \"Mensagem:\",    \"value\": \"{{ $json.error?.message || 'sem mensagem' }}\"},\n      {\"name\": \"Horario:\",     \"value\": \"{{ new Date().toLocaleString('pt-BR') }}\"}\n    ]\n  }]\n}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Cron 07h30": {
+      "main": [[{ "node": "Calcular Datas D-1", "type": "main", "index": 0 }]]
+    },
+    "Webhook Manual": {
+      "main": [[{ "node": "Calcular Datas D-1", "type": "main", "index": 0 }]]
+    },
+    "Calcular Datas D-1": {
+      "main": [[{ "node": "Preparar Consulta SQL", "type": "main", "index": 0 }]]
+    },
+    "Preparar Consulta SQL": {
+      "main": [[{ "node": "Adquirente - Autenticacao OAuth", "type": "main", "index": 0 }]]
+    },
+    "Adquirente - Autenticacao OAuth": {
+      "main": [[{ "node": "Adquirente - Buscar Vendas", "type": "main", "index": 0 }]]
+    },
+    "Adquirente - Buscar Vendas": {
+      "main": [[{ "node": "ERP - SQL Vendas", "type": "main", "index": 0 }]]
+    },
+    "ERP - SQL Vendas": {
+      "main": [[{ "node": "Confronto NSU + MDR", "type": "main", "index": 0 }]]
+    },
+    "Confronto NSU + MDR": {
+      "main": [[{ "node": "Gerar Excel", "type": "main", "index": 0 }]]
+    },
+    "Gerar Excel": {
+      "main": [[{ "node": "MS Graph - Auth", "type": "main", "index": 0 }]]
+    },
+    "MS Graph - Auth": {
+      "main": [[{ "node": "SharePoint - Upload Arquivo", "type": "main", "index": 0 }]]
+    },
+    "SharePoint - Upload Arquivo": {
+      "main": [[{ "node": "Preparar Mensagem Teams", "type": "main", "index": 0 }]]
+    },
+    "Preparar Mensagem Teams": {
+      "main": [[{ "node": "Teams - Notificacao", "type": "main", "index": 0 }]]
+    },
+    "Error Trigger": {
+      "main": [[{ "node": "Teams - Alerta Erro", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "",
+    "timezone": "America/Sao_Paulo"
+  },
+  "active": false,
+  "pinData": {
+    "ERP - SQL Vendas": [
+      { "json": { "id_venda": 1001, "Loja": "1", "Data_Emissao": "2026-06-29", "Numero_Documento": "NF-001", "Tipo_Documento": "NFC-e", "Forma_Pagamento": "Cartao Credito", "Valor_Pagamento": 118.12, "Usuario": "OPERADOR01", "Numero_Autorizacao": "441488", "NSU": "879555119" } },
+      { "json": { "id_venda": 1002, "Loja": "1", "Data_Emissao": "2026-06-29", "Numero_Documento": "NF-002", "Tipo_Documento": "Cupom Fiscal", "Forma_Pagamento": "Cartao Credito", "Valor_Pagamento": 599.00, "Usuario": "OPERADOR01", "Numero_Autorizacao": "4475", "NSU": "247435598" } },
+      { "json": { "id_venda": 1003, "Loja": "2", "Data_Emissao": "2026-06-29", "Numero_Documento": "NF-003", "Tipo_Documento": "NFC-e", "Forma_Pagamento": "Cartao Debito", "Valor_Pagamento": 148.00, "Usuario": "OPERADOR02", "Numero_Autorizacao": "D118617", "NSU": "4732688" } },
+      { "json": { "id_venda": 1005, "Loja": "1", "Data_Emissao": "2026-06-29", "Numero_Documento": "NF-005", "Tipo_Documento": "Cupom Fiscal", "Forma_Pagamento": "Cartao Credito", "Valor_Pagamento": 350.00, "Usuario": "OPERADOR01", "Numero_Autorizacao": "999999", "NSU": "000000001" } }
+    ],
+    "Adquirente - Buscar Vendas": [
+      { "json": { "content": { "transactions": [
+        { "nsu": 879555119, "authorizationCode": 441488, "brandCode": 1, "modality": { "type": "CREDITO", "product": "A VISTA" }, "installmentQuantity": 1, "amount": 118.12, "netAmount": 114.00, "discountAmount": 4.12, "mdrFee": 3.49, "saleDate": "2026-06-29", "status": "APROVADA", "device": "TERM-001", "captureType": "POS" },
+        { "nsu": 247435598, "authorizationCode": 4475, "brandCode": 2, "modality": { "type": "CREDITO", "product": "A VISTA" }, "installmentQuantity": 1, "amount": 599.00, "netAmount": 578.00, "discountAmount": 21.00, "mdrFee": 3.50, "saleDate": "2026-06-29", "status": "APROVADA", "device": "TERM-001", "captureType": "POS" },
+        { "nsu": 4732688, "authorizationCode": 0, "strAuthorizationCode": "D118617", "brandCode": 3, "modality": { "type": "DEBITO", "product": "A VISTA" }, "installmentQuantity": 1, "amount": 148.00, "netAmount": 145.50, "discountAmount": 2.50, "mdrFee": 1.69, "saleDate": "2026-06-29", "status": "APROVADA", "device": "TERM-002", "captureType": "POS" },
+        { "nsu": 555000777, "authorizationCode": 778899, "brandCode": 1, "modality": { "type": "CREDITO", "product": "PARCELADO" }, "installmentQuantity": 3, "amount": 900.00, "netAmount": 855.00, "discountAmount": 45.00, "mdrFee": 5.00, "saleDate": "2026-06-29", "status": "APROVADA", "device": "TERM-001", "captureType": "POS" }
+      ] }, "cursor": { "hasNextKey": false, "nextKey": null } } }
+    ]
+  },
+  "tags": [
+    { "name": "financeiro" },
+    { "name": "conciliacao" },
+    { "name": "vendas" },
+    { "name": "maquininha" }
+  ],
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

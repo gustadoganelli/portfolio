@@ -1,0 +1,224 @@
+{
+  "name": "Posicao Bancaria Diaria - Resumo Automatico",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "cronExpression", "expression": "0 11 * * 1-5" }
+          ]
+        }
+      },
+      "id": "node-001",
+      "name": "Agendamento Diario",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Monta o nome do arquivo da planilha do dia (fuso de exemplo: UTC-3)\nconst meses = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];\n\nconst agora = new Date();\nconst offsetLocal = -3 * 60 * 60 * 1000;\nconst dataLocal = new Date(agora.getTime() + (agora.getTimezoneOffset() * 60000) + offsetLocal);\n\nconst yyyy    = dataLocal.getFullYear().toString();\nconst mm      = String(dataLocal.getMonth() + 1).padStart(2, '0');\nconst dd      = String(dataLocal.getDate()).padStart(2, '0');\nconst nomeMes = meses[dataLocal.getMonth()];\n\nconst nomeArquivo = `Posicao Bancaria ${dd}.${mm}.${yyyy}.xlsx`;\n\nreturn [{\n  json: {\n    yyyy, mm, dd, nomeMes,\n    nomeArquivo,\n    dataFormatada: `${dd}/${mm}/${yyyy}`\n  }\n}];"
+      },
+      "id": "node-002",
+      "name": "Montar Nome do Arquivo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://demo.exemplo.dev/api/v1/search/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"requests\": [{\n    \"entityTypes\": [\"driveItem\"],\n    \"query\": { \"queryString\": \"\\\"{{ $json.nomeArquivo }}\\\"\" },\n    \"fields\": [\"id\",\"name\",\"parentReference\",\"webUrl\"]\n  }]\n}",
+        "options": {}
+      },
+      "id": "node-003",
+      "name": "Buscar Arquivo do Dia",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Credencial API Documentos (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrai os identificadores do arquivo a partir do resultado da busca\nconst searchResult = $input.first().json;\nconst datas       = $('Montar Nome do Arquivo').first().json;\nconst nomeArquivo = datas.nomeArquivo;\n\nconst containers = searchResult.value || [];\nlet item = null;\n\nfor (const c of containers) {\n  for (const hc of (c.hitsContainers || [])) {\n    for (const hit of (hc.hits || [])) {\n      if ((hit.resource || {}).name === nomeArquivo) {\n        item = {\n          itemId:  hit.resource.id,\n          driveId: hit.resource.parentReference?.driveId,\n          nome:    hit.resource.name\n        };\n        break;\n      }\n    }\n    if (item) break;\n  }\n  if (item) break;\n}\n\nif (!item) throw new Error(`Arquivo \"${nomeArquivo}\" nao encontrado.`);\n\nreturn [{ json: { ...datas, ...item } }];"
+      },
+      "id": "node-004",
+      "name": "Extrair IDs do Arquivo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://demo.exemplo.dev/api/v1/drives/{{ $json.driveId }}/items/{{ $json.itemId }}/workbook/worksheets/Posicao%20Diaria/range(address='A2:B12')",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "options": {}
+      },
+      "id": "node-005",
+      "name": "Ler Aba Posicao Diaria",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 300],
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Credencial API Documentos (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// FORMATA O RESUMO EM HTML PARA O CANAL DE MENSAGENS\n// Intervalo A2:B12 -> coluna A = rotulo, coluna B = valor\n// ============================================================\nconst excelData = $input.first().json;\nconst datas     = $('Montar Nome do Arquivo').first().json;\nconst values    = excelData.values || [];\n\nconst vazio = v => v === null || v === undefined || v === '';\n\nconst temDados = values.some(row => !(vazio(row[0]) && vazio(row[1])));\nif (!temDados) {\n  return [{ json: { erro: 'Nenhum dado encontrado no intervalo A2:B12', mensagem: null } }];\n}\n\nfunction formatarMoeda(val) {\n  if (vazio(val)) return '';\n  if (typeof val !== 'number') return String(val).trim();\n  const abs = Math.abs(val);\n  const str = abs.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });\n  return val < 0 ? `-R$ ${str}` : `R$ ${str}`;\n}\n\nconst LINHAS_DESTAQUE = ['saldo final do dia', 'saldo total disponivel'];\n\nlet linhas = [];\nlinhas.push(`<b>POSICAO BANCARIA - ${datas.dataFormatada}</b>`);\nlinhas.push('-----------------------------------------');\nlinhas.push('');\n\nfor (const row of values) {\n  const label = row[0];\n  const valor = row[1];\n\n  if (vazio(label) && vazio(valor)) { linhas.push(''); continue; }\n\n  // Linha de titulo de secao (so texto, valor vazio)\n  if (!vazio(label) && vazio(valor)) {\n    linhas.push(`<b>${String(label).trim()}</b>`);\n    continue;\n  }\n\n  const labelStr = String(label).trim();\n  const valorStr = formatarMoeda(valor);\n  const destaque = LINHAS_DESTAQUE.some(d => labelStr.toLowerCase().includes(d));\n\n  linhas.push(destaque ? `<b>${labelStr}: ${valorStr}</b>` : `${labelStr}: ${valorStr}`);\n}\n\nlinhas.push('');\nlinhas.push('-----------------------------------------');\nlinhas.push('<i>Envio automatico - dados ficticios de demonstracao</i>');\n\nconst mensagem = linhas.join('<br>\\n');\nreturn [{ json: { erro: null, mensagem } }];"
+      },
+      "id": "node-006",
+      "name": "Formatar Mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [{
+            "id": "cond-01",
+            "leftValue": "={{ $json.mensagem }}",
+            "rightValue": "",
+            "operator": { "type": "string", "operation": "notEmpty" }
+          }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "node-007",
+      "name": "Mensagem Valida?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1520, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lista de destinatarios (dados ficticios). Um item por destinatario.\nconst mensagem = $('Formatar Mensagem').first().json.mensagem;\n\nconst destinatarios = [\n  { nome: 'Joao Silva',    email: 'joao@exemplo.com' },\n  { nome: 'Maria Souza',   email: 'maria@exemplo.com' },\n  { nome: 'Carlos Lima',   email: 'carlos@exemplo.com' },\n  { nome: 'Ana Pereira',   email: 'ana@exemplo.com' }\n];\n\nreturn destinatarios.map(d => ({\n  json: { nome: d.nome, email: d.email, mensagem }\n}));"
+      },
+      "id": "node-008",
+      "name": "Expandir Destinatarios",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1740, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://demo.exemplo.dev/api/v1/messages/send",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $json.email }}\",\n  \"body\": {\n    \"contentType\": \"html\",\n    \"content\": {{ JSON.stringify($json.mensagem) }}\n  }\n}",
+        "options": {}
+      },
+      "id": "node-009",
+      "name": "Enviar Resumo ao Destinatario",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1960, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Credencial API Mensagens (placeholder)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconsole.error('[Posicao Bancaria] Sem dados:', JSON.stringify(data));\nreturn [{ json: { status: 'ERRO_SEM_DADOS', timestamp: new Date().toISOString(), detalhe: data.erro } }];"
+      },
+      "id": "node-010",
+      "name": "Erro - Sem Dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1740, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const erro = $input.first().json;\nconsole.error('[Posicao Bancaria] Falha de acesso:', JSON.stringify(erro));\nreturn [{ json: { status: 'ERRO_ACESSO', timestamp: new Date().toISOString(), detalhe: erro.message || JSON.stringify(erro) } }];"
+      },
+      "id": "node-011",
+      "name": "Erro - Falha no Acesso",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 500]
+    }
+  ],
+
+  "connections": {
+    "Agendamento Diario": {
+      "main": [[{ "node": "Montar Nome do Arquivo", "type": "main", "index": 0 }]]
+    },
+    "Montar Nome do Arquivo": {
+      "main": [[{ "node": "Buscar Arquivo do Dia", "type": "main", "index": 0 }]]
+    },
+    "Buscar Arquivo do Dia": {
+      "main": [
+        [{ "node": "Extrair IDs do Arquivo", "type": "main", "index": 0 }],
+        [{ "node": "Erro - Falha no Acesso",  "type": "main", "index": 0 }]
+      ]
+    },
+    "Extrair IDs do Arquivo": {
+      "main": [[{ "node": "Ler Aba Posicao Diaria", "type": "main", "index": 0 }]]
+    },
+    "Ler Aba Posicao Diaria": {
+      "main": [
+        [{ "node": "Formatar Mensagem",      "type": "main", "index": 0 }],
+        [{ "node": "Erro - Falha no Acesso", "type": "main", "index": 0 }]
+      ]
+    },
+    "Formatar Mensagem": {
+      "main": [[{ "node": "Mensagem Valida?", "type": "main", "index": 0 }]]
+    },
+    "Mensagem Valida?": {
+      "main": [
+        [{ "node": "Expandir Destinatarios", "type": "main", "index": 0 }],
+        [{ "node": "Erro - Sem Dados",        "type": "main", "index": 0 }]
+      ]
+    },
+    "Expandir Destinatarios": {
+      "main": [[{ "node": "Enviar Resumo ao Destinatario", "type": "main", "index": 0 }]]
+    }
+  },
+
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "meta": { "templateCredsSetupCompleted": false },
+  "tags": [{ "name": "financeiro" }, { "name": "demo" }, { "name": "automatico" }]
+}

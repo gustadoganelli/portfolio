@@ -1,0 +1,87 @@
+{
+  "name": "Painel Disponibilidade - Exemplo (placeholders)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "painel-disponibilidade",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-disponibilidade",
+      "name": "Webhook Disponibilidade",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "notes": "Exposto ao painel. URL: {{WEBHOOK_DISPONIBILIDADE}}"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lista de calendarios a consultar (substitua pelos seus)\nreturn [\n  { json: { id: 'pessoa1@exemplo.dev', nome: 'Pessoa 1', tipo: 'pessoa', categoria: 'Equipe' } },\n  { json: { id: 'sala-1@exemplo.dev',   nome: 'Sala 1',   tipo: 'sala',   categoria: 'Salas' } }\n];"
+      },
+      "id": "define-usuarios",
+      "name": "Define Usuarios",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "{{TOKEN_ENDPOINT}}",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "client_id", "value": "{{CLIENT_ID}}" },
+            { "name": "client_secret", "value": "{{CLIENT_SECRET}}" },
+            { "name": "grant_type", "value": "client_credentials" },
+            { "name": "scope", "value": "{{API_SCOPE}}" }
+          ]
+        }
+      },
+      "id": "obter-token",
+      "name": "Obter Token (OAuth2)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [680, 300],
+      "notes": "Todas as credenciais vem de variaveis/credenciais do n8n. NUNCA hardcode."
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ '{{CALENDAR_API_BASE}}/' + $json.id + '/calendarView' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $json.access_token }}" }
+          ]
+        }
+      },
+      "id": "consultar-agenda",
+      "name": "Consultar Agenda",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 300],
+      "notes": "Consulta os eventos do intervalo atual para cada calendario."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Deriva o status atual (Disponivel / Em Reuniao / Ausente)\n// a partir dos eventos retornados pela API de calendario.\nconst agora = new Date();\nreturn items.map(item => {\n  const eventos = item.json.value || [];\n  const emReuniao = eventos.find(e => new Date(e.start) <= agora && agora <= new Date(e.end));\n  return { json: {\n    id: item.json.id,\n    nome: item.json.nome,\n    statusAtual: emReuniao ? 'Em Reuniao' : 'Disponivel',\n    reuniaoAtual: emReuniao ? { subject: emReuniao.subject, fim: emReuniao.endHora } : null,\n    proximaReuniao: null\n  } };\n});"
+      },
+      "id": "calcular-status",
+      "name": "Calcular Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Disponibilidade": { "main": [[{ "node": "Define Usuarios", "type": "main", "index": 0 }]] },
+    "Define Usuarios":        { "main": [[{ "node": "Obter Token (OAuth2)", "type": "main", "index": 0 }]] },
+    "Obter Token (OAuth2)":   { "main": [[{ "node": "Consultar Agenda", "type": "main", "index": 0 }]] },
+    "Consultar Agenda":       { "main": [[{ "node": "Calcular Status", "type": "main", "index": 0 }]] }
+  },
+  "settings": {},
+  "_comentario": "Workflow ILUSTRATIVO. Todos os valores entre {{ }} sao placeholders e devem ser preenchidos com credenciais armazenadas com seguranca no n8n (Settings > Variables/Credentials)."
+}

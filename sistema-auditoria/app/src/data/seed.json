@@ -1,0 +1,75 @@
+{
+  "unidades": [
+    { "id": "u-norte", "nome": "Unidade Norte", "localizacao": "Regiao Norte" },
+    { "id": "u-sul",   "nome": "Unidade Sul",   "localizacao": "Regiao Sul" },
+    { "id": "u-leste", "nome": "Unidade Leste", "localizacao": "Regiao Leste" },
+    { "id": "u-oeste", "nome": "Unidade Oeste", "localizacao": "Regiao Oeste" }
+  ],
+  "areas": [
+    { "id": "a-adm",       "nome": "Administrativo",         "icone": "briefcase", "cor": "#2D8CFF" },
+    { "id": "a-estoque",   "nome": "Estoque e Almoxarifado", "icone": "package",   "cor": "#FF8A3D" },
+    { "id": "a-seguranca", "nome": "Seguranca do Trabalho",  "icone": "shield",    "cor": "#27AE60" },
+    { "id": "a-manut",     "nome": "Manutencao",             "icone": "wrench",    "cor": "#9B59B6" },
+    { "id": "a-limpeza",   "nome": "Limpeza e Higiene",      "icone": "sparkles",  "cor": "#16A085" }
+  ],
+  "unidade_areas": [
+    { "unidade_id": "u-norte", "area_id": "a-adm" },
+    { "unidade_id": "u-norte", "area_id": "a-estoque" },
+    { "unidade_id": "u-norte", "area_id": "a-seguranca" },
+    { "unidade_id": "u-norte", "area_id": "a-manut" },
+    { "unidade_id": "u-norte", "area_id": "a-limpeza" },
+    { "unidade_id": "u-sul", "area_id": "a-adm" },
+    { "unidade_id": "u-sul", "area_id": "a-estoque" },
+    { "unidade_id": "u-sul", "area_id": "a-seguranca" },
+    { "unidade_id": "u-sul", "area_id": "a-limpeza" },
+    { "unidade_id": "u-leste", "area_id": "a-adm" },
+    { "unidade_id": "u-leste", "area_id": "a-seguranca" },
+    { "unidade_id": "u-leste", "area_id": "a-manut" },
+    { "unidade_id": "u-oeste", "area_id": "a-adm" },
+    { "unidade_id": "u-oeste", "area_id": "a-estoque" },
+    { "unidade_id": "u-oeste", "area_id": "a-limpeza" }
+  ],
+  "itens": [
+    { "id": "i-001", "codigo": "ITM-001", "area_id": "a-adm", "titulo": "Organizacao geral do ambiente", "subtitulo": "Avalie limpeza, ordem e identificacao dos espacos.", "tipo": "SCORE", "schema_classificacao": null },
+    { "id": "i-002", "codigo": "ITM-002", "area_id": "a-adm", "titulo": "Documentos obrigatorios disponiveis", "subtitulo": "Contratos, licencas e registros em dia.", "tipo": "BOOLEANO", "schema_classificacao": null },
+    { "id": "i-003", "codigo": "ITM-003", "area_id": "a-adm", "titulo": "Apontamentos do auditor", "subtitulo": "Registre qualquer nao conformidade observada.", "tipo": "TEXTO_APONTAMENTO", "schema_classificacao": null },
+
+    { "id": "i-004", "codigo": "ITM-004", "area_id": "a-estoque", "titulo": "Conferencia de inventario", "subtitulo": "Itens identificados e quantidades batem com o sistema.", "tipo": "SCORE", "schema_classificacao": null },
+    { "id": "i-005", "codigo": "ITM-005", "area_id": "a-estoque", "titulo": "Controle de validade dos produtos", "subtitulo": "Liste lotes proximos do vencimento ou vencidos.", "tipo": "CLASSIFICACAO",
+      "schema_classificacao": {
+        "multiplo": true,
+        "item_label": "Produto",
+        "campos": [
+          { "chave": "produto", "label": "Produto", "tipo": "text", "obrigatorio": true },
+          { "chave": "lote", "label": "Lote", "tipo": "text" },
+          { "chave": "situacao", "label": "Situacao", "tipo": "select", "obrigatorio": true, "opcoes": ["Atualizado", "Proximo do vencimento", "Vencido", "Nao se aplica"] },
+          { "chave": "validade", "label": "Validade", "tipo": "date" }
+        ]
+      } },
+
+    { "id": "i-006", "codigo": "ITM-006", "area_id": "a-seguranca", "titulo": "Uso de EPIs pela equipe", "subtitulo": "Equipe utilizando equipamentos de protecao adequados.", "tipo": "BOOLEANO", "schema_classificacao": null },
+    { "id": "i-007", "codigo": "ITM-007", "area_id": "a-seguranca", "titulo": "Sinalizacao de seguranca", "subtitulo": "Extintores, rotas de fuga e placas visiveis e validas.", "tipo": "SCORE", "schema_classificacao": null },
+
+    { "id": "i-008", "codigo": "ITM-008", "area_id": "a-manut", "titulo": "Estado de conservacao dos equipamentos", "subtitulo": "Avalie funcionamento e manutencao preventiva.", "tipo": "SCORE", "schema_classificacao": null },
+    { "id": "i-009", "codigo": "ITM-009", "area_id": "a-manut", "titulo": "Recomendacoes de melhoria", "subtitulo": "Sugestoes nao obrigatorias para o gestor.", "tipo": "TEXTO_RECOMENDACAO", "schema_classificacao": null },
+
+    { "id": "i-010", "codigo": "ITM-010", "area_id": "a-limpeza", "titulo": "Limpeza dos ambientes comuns", "subtitulo": "Banheiros, copa e areas de circulacao.", "tipo": "SCORE", "schema_classificacao": null },
+    { "id": "i-011", "codigo": "ITM-011", "area_id": "a-limpeza", "titulo": "Bloco de notas da area", "subtitulo": "Anotacoes livres do auditor.", "tipo": "TEXTO_ANOTACAO", "schema_classificacao": null }
+  ],
+  "historico": {
+    "i-001|u-norte": [
+      { "valor": "Nota 5", "comentario": "Ambiente bem organizado.", "auditor": "Auditor Exemplo", "data": "2026-06" },
+      { "valor": "Nota 4", "comentario": "Pequenos ajustes pontuais.", "auditor": "Auditor Exemplo", "data": "2026-05" }
+    ],
+    "i-004|u-sul": [
+      { "valor": "Nota 2", "comentario": "Divergencias relevantes no inventario.", "auditor": "Auditor Exemplo", "data": "2026-06" }
+    ],
+    "i-007|u-norte": [
+      { "valor": "Nota 4", "comentario": "Sinalizacao adequada em quase toda a area.", "auditor": "Auditor Exemplo", "data": "2026-05" }
+    ]
+  },
+  "ncs_pendentes": [
+    { "unidade_id": "u-norte", "area_id": "a-seguranca", "descricao": "Colaboradores operando sem o EPI obrigatorio.", "risco": "Critico", "data": "2026-06", "prazo": "2026-07-15" },
+    { "unidade_id": "u-sul", "area_id": "a-estoque", "descricao": "Divergencia entre o estoque fisico e o sistema.", "risco": "Alto", "data": "2026-06", "prazo": "2026-07-30" }
+  ]
+}
