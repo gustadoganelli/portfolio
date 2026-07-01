@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Portal de Estudos com IA</title>
+<style>
+  :root{
+    --rosa:#ff5e8a; --rosa-claro:#ffd6e4; --rosa-bg:#fff0f5;
+    --vinho:#b3214f; --roxo:#7a3b8f; --azul:#3b6ea5;
+    --texto:#3a2733; --suave:#7d6b74; --branco:#fff;
+    --verde:#2fa36b; --amarelo:#f6b93b;
+    --sombra:0 10px 30px rgba(179,33,79,.15);
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--texto);background:var(--rosa-bg);line-height:1.55;overflow-x:hidden;}
+
+  /* ---------- TELA INICIAL ROMÂNTICA ---------- */
+  #intro{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;background:linear-gradient(160deg,#ffb3cd 0%,#ff6f9f 45%,#b3214f 100%);overflow:hidden;transition:opacity .7s ease, transform .7s ease;}
+  #intro.hide{opacity:0;transform:scale(1.08);pointer-events:none}
+  .intro-card{position:relative;z-index:2;max-width:560px;width:100%;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.35);border-radius:26px;padding:38px 26px;box-shadow:0 20px 60px rgba(120,10,50,.35);animation:pop .9s cubic-bezier(.2,.9,.3,1.3);}
+  @keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+  .big-heart{font-size:74px;line-height:1;animation:beat 1.3s ease-in-out infinite;filter:drop-shadow(0 6px 14px rgba(120,0,40,.4))}
+  @keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.2)}30%{transform:scale(1)}45%{transform:scale(1.15)}}
+  #intro h1{color:#fff;font-size:30px;margin:14px 0 6px;text-shadow:0 2px 12px rgba(120,0,40,.4)}
+  #intro .sub{color:#fff;font-size:17px;opacity:.95;margin-bottom:6px}
+  #intro .msg{color:#fff;font-size:16px;opacity:.96;margin:16px auto 4px;max-width:440px}
+  #intro .assina{color:#ffe3ec;font-size:15px;margin-top:18px;font-style:italic}
+  .start-btn{margin-top:26px;border:none;cursor:pointer;background:#fff;color:var(--vinho);font-weight:800;font-size:18px;padding:16px 40px;border-radius:50px;box-shadow:0 10px 24px rgba(120,0,40,.35);transition:transform .15s ease, box-shadow .15s ease;}
+  .start-btn:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 16px 30px rgba(120,0,40,.45)}
+  .start-btn:active{transform:scale(.97)}
+  .floating-heart{position:absolute;bottom:-40px;font-size:24px;z-index:1;pointer-events:none;opacity:.85;animation:rise linear forwards}
+  @keyframes rise{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.9}100%{transform:translateY(-115vh) rotate(360deg);opacity:0}}
+
+  /* ---------- SELETOR DE PROVA ---------- */
+  #seletor{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:42px 20px 40px;text-align:center;background:linear-gradient(160deg,#fff0f5 0%,#ffe1ea 100%);overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  #seletor.show{display:flex;animation:fade .5s ease}
+  #seletor h2{color:var(--vinho);font-size:24px;margin-bottom:6px}
+  #seletor p.subt{color:var(--suave);font-size:15px;margin-bottom:26px;max-width:430px}
+  .prova-cards{display:flex;flex-direction:column;gap:16px;width:100%;max-width:440px}
+  .prova-card{background:#fff;border-radius:20px;padding:22px 20px;cursor:pointer;text-align:left;box-shadow:var(--sombra);border:2px solid transparent;transition:.2s;position:relative;overflow:hidden;}
+  .prova-card:hover{transform:translateY(-3px);border-color:var(--rosa)}
+  .prova-card:active{transform:scale(.98)}
+  .prova-card .pc-emoji{font-size:34px}
+  .prova-card .pc-dia{display:inline-block;font-size:11.5px;font-weight:800;color:#fff;background:var(--rosa);padding:3px 10px;border-radius:20px;margin:8px 0}
+  .prova-card.quinta .pc-dia{background:var(--azul)}
+  .prova-card h3{font-size:18px;color:var(--vinho);margin-bottom:4px}
+  .prova-card.quinta h3{color:var(--azul)}
+  .prova-card .pc-desc{font-size:13.5px;color:var(--suave)}
+  .prova-card .pc-go{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:24px;color:var(--rosa)}
+  .seletor-voltar{margin-top:24px;background:none;border:none;color:var(--suave);font-size:13px;cursor:pointer;text-decoration:underline}
+  .prova-card.finalizada{opacity:.6}
+  .prova-card.finalizada .pc-dia{background:#9a8a93}
+  .prova-card.finalizada .pc-go{color:var(--verde)}
+  .nova-prova-btn{width:100%;max-width:440px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--rosa),var(--vinho));color:#fff;font-weight:800;font-size:16px;padding:17px;border-radius:16px;box-shadow:var(--sombra);margin-bottom:18px;transition:.15s}
+  .nova-prova-btn:active{transform:scale(.98)}
+  .filtro-btn{width:100%;max-width:440px;background:#fff;border:1.5px solid var(--rosa-claro);color:var(--vinho);font-weight:700;font-size:14px;padding:13px;border-radius:14px;cursor:pointer;margin-top:8px}
+  .filtro-btn:active{transform:scale(.98)}
+  .prova-cards-fin{margin-top:12px}
+  .vazio{color:var(--suave);font-size:14.5px;padding:14px;text-align:center;background:#fff;border-radius:16px;box-shadow:var(--sombra)}
+
+  /* ---------- APP DE ESTUDO ---------- */
+  #app{display:none;min-height:100%;flex-direction:column}
+  #app.show{display:flex;animation:fade .8s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  header{position:sticky;top:0;z-index:20;color:#fff;padding:14px 16px;box-shadow:0 4px 18px rgba(179,33,79,.3);background:linear-gradient(135deg,var(--rosa) 0%,var(--vinho) 100%);}
+  header.quinta{background:linear-gradient(135deg,#5b8fd0 0%,#2c5a8f 100%)}
+  .hd-top{display:flex;align-items:center;gap:10px;justify-content:space-between}
+  .hd-title{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .hd-back{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:12.5px;padding:7px 11px;border-radius:30px;cursor:pointer;font-weight:600;white-space:nowrap}
+  .hd-back:active{transform:scale(.95)}
+  .progress-wrap{margin-top:10px}
+  .progress-txt{font-size:12.5px;opacity:.95;margin-bottom:5px;display:flex;justify-content:space-between}
+  .progress-bar{height:7px;background:rgba(255,255,255,.3);border-radius:10px;overflow:hidden}
+  .progress-fill{height:100%;width:0%;background:#fff;border-radius:10px;transition:width .5s ease}
+
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 14px;background:#fff;position:sticky;top:104px;z-index:15;box-shadow:0 2px 8px rgba(0,0,0,.04);-webkit-overflow-scrolling:touch}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;border:1.5px solid var(--rosa-claro);background:#fff;color:var(--vinho);padding:9px 15px;border-radius:30px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.2s}
+  .tab.active{background:var(--rosa);color:#fff;border-color:var(--rosa);box-shadow:var(--sombra)}
+  body.quinta .tab{border-color:#cfe0f2;color:var(--azul)}
+  body.quinta .tab.active{background:var(--azul);color:#fff;border-color:var(--azul)}
+
+  main{flex:1;padding:16px 14px 60px;max-width:760px;margin:0 auto;width:100%}
+  .bloco-titulo{font-size:15px;color:var(--suave);margin:6px 4px 14px;font-weight:600}
+
+  .aula{background:#fff;border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--sombra);overflow:hidden;border:1px solid #ffe1ea}
+  body.quinta .aula{border-color:#e2edf8}
+  .aula-head{display:flex;align-items:center;gap:12px;padding:16px 16px;cursor:pointer}
+  .aula-num{flex:0 0 auto;min-width:42px;height:38px;padding:0 8px;border-radius:12px;background:var(--rosa-bg);color:var(--vinho);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+  body.quinta .aula-num{background:#eaf2fb;color:var(--azul)}
+  .aula-titulo{flex:1;font-weight:700;font-size:15px}
+  .aula-check{flex:0 0 auto;font-size:20px;opacity:.25;transition:.2s}
+  .aula.studied .aula-check{opacity:1}
+  .aula.studied .aula-num{background:var(--verde);color:#fff}
+  .chevron{flex:0 0 auto;transition:transform .3s ease;color:var(--rosa);font-size:18px}
+  body.quinta .chevron{color:var(--azul)}
+  .aula.open .chevron{transform:rotate(180deg)}
+  .aula-body{max-height:0;overflow:hidden;transition:max-height .5s ease;padding:0 16px}
+  .aula.open .aula-body{max-height:9000px;padding-bottom:16px}
+
+  .sec{margin-top:16px}
+  .sec-label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;font-weight:800;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+  .frase{background:linear-gradient(135deg,#fff0f5,#ffe1ea);border-left:5px solid var(--rosa);padding:14px 16px;border-radius:12px;font-size:16px;font-weight:600;color:var(--vinho)}
+  body.quinta .frase{background:linear-gradient(135deg,#eef5fc,#dceaf8);border-left-color:var(--azul);color:#1f4773}
+  .analogia{background:#f4f0ff;border-left:5px solid var(--roxo);padding:13px 16px;border-radius:12px;font-size:15px;color:#4a2e57}
+  ul.conceitos{list-style:none;padding:0}
+  ul.conceitos li{position:relative;padding:6px 0 6px 24px;font-size:14.5px;border-bottom:1px dashed #f1dde6}
+  body.quinta ul.conceitos li{border-color:#e4eef8}
+  ul.conceitos li:before{content:"💗";position:absolute;left:0;font-size:12px;top:8px}
+  body.quinta ul.conceitos li:before{content:"🔹"}
+  ol.passos{padding-left:0;counter-reset:p;list-style:none}
+  ol.passos li{position:relative;padding:8px 0 8px 38px;font-size:14.5px;border-bottom:1px dashed #eee}
+  ol.passos li:before{counter-increment:p;content:counter(p);position:absolute;left:0;top:7px;width:25px;height:25px;background:var(--vinho);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+  body.quinta ol.passos li:before{background:var(--azul)}
+  .dados{background:#f0f8f3;border:1px solid #cdeede;border-radius:12px;padding:6px 14px;list-style:none}
+  .dados li{padding:8px 0;font-size:14.5px;border-bottom:1px dashed #d7eee1}
+  .dados li:last-child{border-bottom:none}
+  .dados b{color:var(--verde)}
+  .dado-tag{display:inline-block;background:var(--verde);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;margin-right:6px}
+
+  .fc-intro{font-size:13px;color:var(--suave);margin-bottom:8px}
+  .flashcard{background:linear-gradient(135deg,#fff,#fff6f9);border:2px solid var(--rosa-claro);border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:.2s}
+  body.quinta .flashcard{background:linear-gradient(135deg,#fff,#f5f9fd);border-color:#d4e4f5}
+  .flashcard:active{transform:scale(.99)}
+  .fc-q{font-weight:700;font-size:14.5px;display:flex;gap:8px}
+  .fc-q .qmark{color:var(--rosa);font-weight:800}
+  body.quinta .fc-q .qmark{color:var(--azul)}
+  .fc-a{max-height:0;overflow:hidden;transition:max-height .4s ease, margin .3s, opacity .3s;opacity:0;font-size:14.5px;color:var(--texto)}
+  .flashcard.revealed{border-color:var(--verde);background:linear-gradient(135deg,#f3fbf6,#eafaf1)}
+  .flashcard.revealed .fc-a{max-height:500px;margin-top:10px;opacity:1;padding-top:10px;border-top:1px dashed #cfe9da}
+  .fc-hint{font-size:11.5px;color:var(--rosa);margin-top:8px;font-weight:600}
+  body.quinta .fc-hint{color:var(--azul)}
+  .flashcard.revealed .fc-hint{color:var(--verde)}
+  .fc-a .resp-label{font-weight:800;color:var(--verde);margin-right:5px}
+
+  .mark-btn{margin-top:18px;width:100%;border:none;cursor:pointer;padding:13px;border-radius:12px;font-weight:800;font-size:14.5px;background:var(--rosa-bg);color:var(--vinho);transition:.2s;border:2px solid var(--rosa-claro)}
+  body.quinta .mark-btn{background:#eaf2fb;color:var(--azul);border-color:#d4e4f5}
+  .mark-btn:active{transform:scale(.98)}
+  .aula.studied .mark-btn{background:var(--verde);color:#fff;border-color:var(--verde)}
+  .audio-box{background:#eef5fc;border:1px solid #cfe0f2;border-radius:12px;padding:12px 14px}
+  .audio-caso{width:100%;margin-top:4px;height:40px}
+  .video-aula{width:100%;border-radius:12px;background:#000;display:block}
+  /* modal de cadastro */
+  .modal-overlay{position:fixed;inset:0;z-index:60;display:none;align-items:flex-start;justify-content:center;background:rgba(80,10,40,.5);padding:18px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .modal-overlay.show{display:flex}
+  .modal-card{background:#fff;border-radius:22px;max-width:460px;width:100%;padding:26px 20px 22px;box-shadow:0 20px 60px rgba(120,10,50,.4);position:relative;margin:auto;animation:pop .4s}
+  .modal-card h3{color:var(--vinho);font-size:21px;margin-bottom:4px}
+  .modal-card .mc-sub{color:var(--suave);font-size:13px;margin-bottom:8px}
+  .modal-x{position:absolute;right:12px;top:10px;border:none;background:none;font-size:22px;color:var(--suave);cursor:pointer;line-height:1;padding:6px}
+  .modal-card label{display:block;font-size:13px;font-weight:700;color:var(--texto);margin-top:13px}
+  .modal-card input,.modal-card select{width:100%;margin-top:5px;padding:14px;border:1.5px solid var(--rosa-claro);border-radius:12px;font-size:16px;font-family:inherit;background:#fff;color:var(--texto)}
+  .modal-card input:focus,.modal-card select:focus{outline:none;border-color:var(--rosa)}
+  .form-gerar{width:100%;margin-top:20px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--rosa),var(--vinho));color:#fff;font-weight:800;font-size:16px;padding:16px;border-radius:14px;transition:.15s}
+  .form-gerar:active{transform:scale(.98)}
+  .form-gerar:disabled{opacity:.55}
+  .form-status{margin-top:12px;font-size:13.5px;text-align:center;color:var(--suave);min-height:18px;line-height:1.4}
+  .form-status.erro{color:var(--vinho);font-weight:700}
+  .form-status.ok{color:var(--verde);font-weight:700}
+  /* player de aula (slideshow) */
+  .assistir-btn{width:100%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--rosa),var(--vinho));color:#fff;font-weight:800;font-size:15.5px;padding:14px;border-radius:14px;box-shadow:var(--sombra);margin-bottom:16px;transition:.15s}
+  body.quinta .assistir-btn{background:linear-gradient(135deg,#5b8fd0,#2c5a8f)}
+  .assistir-btn:active{transform:scale(.98)}
+  .player-overlay{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;background:linear-gradient(160deg,#ff7aa8,#b3214f);color:#fff}
+  .player-overlay.show{display:flex}
+  .player-overlay.azul{background:linear-gradient(160deg,#5b8fd0,#2c5a8f)}
+  .player-x{position:absolute;right:14px;top:12px;z-index:3;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:18px;width:38px;height:38px;border-radius:50%;cursor:pointer}
+  .player-progress{height:5px;background:rgba(255,255,255,.25);width:100%}
+  .player-progress-fill{height:100%;width:0;background:#fff;transition:width .35s linear}
+  .player-stage{flex:1;display:flex;align-items:center;justify-content:center;padding:34px 24px;text-align:center;overflow-y:auto;cursor:pointer}
+  .player-stage>div{max-width:560px;width:100%;animation:slideIn .5s ease}
+  @keyframes slideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .slide-emoji{font-size:62px;line-height:1}
+  .slide-intro h1{font-size:30px;margin:12px 0 6px}
+  .slide-intro p{font-size:17px;opacity:.95}
+  .slide-hint{margin-top:22px;font-size:13px;opacity:.8}
+  .slide-kicker{font-size:12.5px;text-transform:uppercase;letter-spacing:.8px;opacity:.85;margin-bottom:14px;font-weight:800}
+  .slide-bloco h2{font-size:27px}
+  .slide-frase{font-size:23px;font-weight:800;line-height:1.4}
+  .slide-analogia{font-size:19px;line-height:1.55}
+  .slide-list,.slide-dados{list-style:none;padding:0;text-align:left;display:inline-block;margin:0 auto}
+  .slide-list li{font-size:17.5px;margin:11px 0;padding-left:26px;position:relative;line-height:1.4}
+  .slide-list li:before{content:"💗";position:absolute;left:0}
+  .player-overlay.azul .slide-list li:before{content:"🔹"}
+  .slide-dados li{font-size:17.5px;margin:11px 0;line-height:1.4}
+  .slide-dados b{display:inline-block;background:rgba(255,255,255,.22);padding:2px 10px;border-radius:20px;margin-right:6px;font-size:13.5px;font-weight:800}
+  .slide-q{font-size:22px;font-weight:800;line-height:1.4}
+  .slide-flash .slide-a{font-size:19px;background:rgba(255,255,255,.18);padding:13px 16px;border-radius:14px;margin-top:16px;animation:revelar .6s ease 2.4s both}
+  @keyframes revelar{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+  .player-count{position:absolute;left:0;right:0;bottom:86px;text-align:center;font-size:12.5px;opacity:.8;pointer-events:none}
+  .player-ctrl{display:flex;gap:20px;justify-content:center;align-items:center;padding:14px 0 24px}
+  .player-ctrl button{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:19px;width:56px;height:56px;border-radius:50%;cursor:pointer}
+  .player-ctrl button:active{transform:scale(.93)}
+
+  .footer-love{text-align:center;padding:28px 16px 40px;color:var(--suave);font-size:13.5px}
+  .footer-love b{color:var(--rosa)}
+  .done-banner{display:none;background:linear-gradient(135deg,var(--verde),#1f8a57);color:#fff;text-align:center;padding:18px;border-radius:16px;margin-bottom:16px;font-weight:700;animation:pop .6s}
+  .done-banner.show{display:block}
+</style>
+</head>
+<body>
+
+<!-- ================= TELA INICIAL ================= -->
+<section id="intro">
+  <div class="intro-card">
+    <div class="big-heart">📚</div>
+    <h1 id="intro-h1">Seu portal de estudos</h1>
+    <p class="sub">Estude qualquer matéria com IA ✨</p>
+    <p class="msg" id="intro-msg">Escolha a matéria que você quer dominar, anexe o PDF do conteúdo e a IA monta a aula pra você: frase-chave, analogias, conceitos, números e flashcards. Vá fundo no assunto que quiser.</p>
+    <p class="assina">Escolha o assunto e vá fundo. 🚀</p>
+    <button class="start-btn" onclick="entrar()">Começar 📚</button>
+  </div>
+</section>
+
+<!-- ================= SELETOR DE PROVA ================= -->
+<section id="seletor">
+  <h2>Suas provas 💗</h2>
+  <p class="subt">Aqui ficam suas próximas provas. Toque em uma para estudar.</p>
+  <button class="nova-prova-btn" onclick="abrirFormulario()">➕ Cadastrar nova prova</button>
+  <div class="prova-cards" id="prova-cards"></div>
+  <button class="filtro-btn" id="filtro-btn" onclick="toggleFinalizadas()" style="display:none"></button>
+  <div class="prova-cards prova-cards-fin" id="prova-cards-fin" style="display:none"></div>
+  <button class="seletor-voltar" onclick="voltarIntro()">← voltar para o início</button>
+</section>
+
+<!-- ================= APP DE ESTUDO ================= -->
+<div id="app">
+  <header id="app-header">
+    <div class="hd-top">
+      <div class="hd-title" id="hd-title">💗 Guia</div>
+      <button class="hd-back" onclick="abrirSeletor()">⇄ trocar prova</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-txt"><span>Seu progresso</span><span id="prog-label">0/0</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+    </div>
+  </header>
+  <div class="tabs" id="tabs"></div>
+  <main>
+    <div class="done-banner" id="done-banner">🎉 Você estudou tudo dessa prova! Mandou muito bem.</div>
+    <button class="assistir-btn" onclick="abrirAula()">▶️ Assistir aula (slideshow)</button>
+    <div class="bloco-titulo" id="bloco-titulo"></div>
+    <div id="aulas"></div>
+    <div class="footer-love">Bons estudos! 🚀</div>
+  </main>
+</div>
+
+<!-- ================= MODAL: CADASTRAR NOVA PROVA ================= -->
+<div id="form-modal" class="modal-overlay">
+  <div class="modal-card">
+    <button class="modal-x" onclick="fecharFormulario()">✕</button>
+    <h3>➕ Nova prova</h3>
+    <div class="mc-sub">Preencha, anexe o PDF do conteúdo e a IA monta a aula + o áudio. 💗</div>
+    <label>Nome da prova *<input id="f-titulo" type="text" placeholder="Ex.: Sinais Vitais"></label>
+    <label>Matérias (resumo curto)<input id="f-materias" type="text" placeholder="opcional"></label>
+    <label>Data da prova *<input id="f-data" type="date"></label>
+    <label>Formato
+      <select id="f-formato"><option>Múltipla escolha</option><option>Caso clínico</option><option>Revisão</option></select>
+    </label>
+    <label>Cor do tema
+      <select id="f-tema"><option value="rosa">Rosa</option><option value="azul">Azul</option></select>
+    </label>
+    <label>Arquivos (PDF) *<input id="f-files" type="file" accept="application/pdf,.pdf" multiple></label>
+    <button class="form-gerar" id="f-gerar" onclick="enviarFormulario()">✨ Gerar aula</button>
+    <div class="form-status" id="f-status"></div>
+  </div>
+</div>
+
+<!-- ================= PLAYER: ASSISTIR AULA (slideshow) ================= -->
+<div id="aula-player" class="player-overlay">
+  <button class="player-x" onclick="fecharAula()">✕</button>
+  <div class="player-progress"><div class="player-progress-fill" id="player-fill"></div></div>
+  <div class="player-stage" id="player-stage" onclick="stageTap(event)"></div>
+  <div class="player-count" id="player-count"></div>
+  <div class="player-ctrl">
+    <button onclick="slidePrev()" aria-label="anterior">◀</button>
+    <button id="player-play" onclick="playPause()" aria-label="play/pausa">❚❚</button>
+    <button onclick="slideNext()" aria-label="próximo">▶</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+/* ====== PERSONALIZE AQUI ====== */
+const NOME = "";
+if(window.pdfjsLib){ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }
+
+/* === conteúdo reutilizado nas duas provas === */
+let PROVAS = [   /* fallback offline; o conteúdo real vem do Supabase */
+{ id:"exemplo", emoji:"\ud83e\ude90", titulo:"Sistema Solar (exemplo)", dia:"Matéria de exemplo", tema:"rosa",
+  desc:"Conteúdo de demonstração — cadastre suas próprias matérias enviando um PDF.",
+  blocos:[
+    { id:"b0", nome:"\ud83e\ude90 Sistema Solar", aulas:[
+      { n:"1", titulo:"Os planetas",
+        frase:"O Sistema Solar tem 8 planetas que orbitam o Sol, divididos em rochosos e gasosos.",
+        analogia:"É como uma pista com 8 carros girando em volta de um farol central: o Sol.",
+        conceitos:["Planetas rochosos: Mercúrio, Vênus, Terra e Marte.","Gigantes gasosos: Júpiter, Saturno, Urano e Netuno.","O Sol concentra cerca de 99% da massa do Sistema Solar."],
+        dadosLabel:"\ud83d\udccc Números de exemplo",
+        dados:[["PLANETAS","8 no total"],["MAIOR","Júpiter"],["MAIS PRÓXIMO","Mercúrio"]],
+        flash:[["Quantos planetas há no Sistema Solar?","8."],["Qual é o maior planeta?","Júpiter."],["Qual o planeta mais próximo do Sol?","Mercúrio."]] }
+    ]}
+  ]
+}
+];
+
+/* ================= LÓGICA ================= */
+let provaAtiva = null;
+let blocoAtivo = 0;
+let studied = {};
+
+function entrar(){
+  for(let i=0;i<18;i++) setTimeout(spawnHeart, i*60);
+  document.getElementById('intro').classList.add('hide');
+  setTimeout(abrirSeletor, 650);
+}
+function voltarIntro(){
+  document.getElementById('seletor').classList.remove('show');
+  document.getElementById('app').classList.remove('show');
+  const intro=document.getElementById('intro');
+  intro.style.display='flex'; void intro.offsetWidth; intro.classList.remove('hide');
+  window.scrollTo(0,0);
+}
+function abrirSeletor(){
+  document.getElementById('intro').style.display='none';
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('seletor').classList.add('show');
+  window.scrollTo(0,0);
+}
+let finVisivel=false;
+function cardProva(p,i){
+  const c=document.createElement('div');
+  c.className='prova-card'+(p.tema==='azul'?' quinta':'')+(p.finalizada?' finalizada':'');
+  c.onclick=()=>escolherProva(i);
+  c.innerHTML=`<div class="pc-emoji">${p.emoji}</div>
+    <div class="pc-dia">${p.dia}</div>
+    <h3>${p.titulo}</h3>
+    <div class="pc-desc">${p.desc}</div>
+    <div class="pc-go">${p.finalizada?'✓':'→'}</div>`;
+  return c;
+}
+function renderSeletor(){
+  const at=document.getElementById('prova-cards'); at.innerHTML='';
+  const fin=document.getElementById('prova-cards-fin'); fin.innerHTML='';
+  let nat=0, nfin=0;
+  PROVAS.forEach((p,i)=>{
+    if(p.finalizada){ fin.appendChild(cardProva(p,i)); nfin++; }
+    else { at.appendChild(cardProva(p,i)); nat++; }
+  });
+  if(!nat) at.innerHTML='<p class="vazio">Nenhuma prova marcada por aqui. Toque em <b>“Cadastrar nova prova”</b> para começar 💗</p>';
+  const fb=document.getElementById('filtro-btn');
+  if(nfin){ fb.style.display='block'; fb.textContent=(finVisivel?'▲ Ocultar provas anteriores':'▼ Ver provas anteriores')+' ('+nfin+')'; }
+  else { fb.style.display='none'; }
+  fin.style.display=(finVisivel&&nfin)?'flex':'none';
+}
+function toggleFinalizadas(){ finVisivel=!finVisivel; renderSeletor(); }
+function abrirFormulario(){ document.getElementById('form-modal').classList.add('show'); }
+function fecharFormulario(){ document.getElementById('form-modal').classList.remove('show'); }
+function _v(id){ return document.getElementById(id).value.trim(); }
+async function extrairPdf(file){
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let t='';
+  for(let i=1;i<=pdf.numPages;i++){ const pg=await pdf.getPage(i); const c=await pg.getTextContent(); t+=c.items.map(x=>x.str).join(' ')+'\n'; }
+  return t;
+}
+async function enviarFormulario(){
+  const st=document.getElementById('f-status'); st.className='form-status';
+  const titulo=_v('f-titulo'), data=_v('f-data');
+  const files=document.getElementById('f-files').files;
+  if(!titulo||!data||!files.length){ st.className='form-status erro'; st.textContent='Preencha o nome, a data e anexe ao menos 1 PDF.'; return; }
+  const btn=document.getElementById('f-gerar'); btn.disabled=true;
+  try{
+    st.textContent='📄 Lendo os PDFs...';
+    let texto='';
+    for(const f of files){ texto += await extrairPdf(f) + '\n'; }
+    if(texto.trim().length<30) throw new Error('Não consegui ler o texto do PDF (pode ser escaneado/imagem).');
+    st.textContent='✨ Gerando a aula e o áudio com IA... (pode levar até 1 min, aguarde)';
+    const r=await fetch('/api/gerar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      titulo, materias:_v('f-materias'), data_prova:data, formato:_v('f-formato'), tema:_v('f-tema'), texto
+    })});
+    const res=await r.json();
+    if(!r.ok||res.error) throw new Error(res.error||'Falha ao gerar.');
+    st.className='form-status ok'; st.textContent='✅ Aula criada com '+res.topicos+' tópicos'+(res.audio?' + áudio narrado':'')+'!';
+    await carregarDados();
+    setTimeout(()=>{ fecharFormulario(); ['f-titulo','f-materias','f-data'].forEach(id=>document.getElementById(id).value=''); document.getElementById('f-files').value=''; st.textContent=''; st.className='form-status'; },2000);
+  }catch(e){ st.className='form-status erro'; st.textContent='❌ '+e.message; }
+  finally{ btn.disabled=false; }
+}
+function escolherProva(i){
+  provaAtiva=i; blocoAtivo=0;
+  const p=PROVAS[i];
+  studied=JSON.parse(localStorage.getItem('estudo_'+p.id)||'{}');
+  document.body.classList.toggle('quinta', p.tema==='azul');
+  document.getElementById('app-header').classList.toggle('quinta', p.tema==='azul');
+  document.getElementById('hd-title').textContent=p.emoji+' '+p.titulo;
+  document.getElementById('seletor').classList.remove('show');
+  document.getElementById('app').classList.add('show');
+  renderTabs(); renderAulas(); updateProgress();
+  window.scrollTo(0,0);
+}
+function totalAulas(){return PROVAS[provaAtiva].blocos.reduce((s,b)=>s+b.aulas.length,0);}
+function renderTabs(){
+  const t=document.getElementById('tabs'); t.innerHTML='';
+  PROVAS[provaAtiva].blocos.forEach((b,i)=>{
+    const el=document.createElement('button');
+    el.className='tab'+(i===blocoAtivo?' active':'');
+    el.textContent=b.nome;
+    el.onclick=()=>{blocoAtivo=i; renderTabs(); renderAulas(); window.scrollTo({top:0,behavior:'smooth'});};
+    t.appendChild(el);
+  });
+}
+function renderAulas(){
+  const b=PROVAS[provaAtiva].blocos[blocoAtivo];
+  document.getElementById('bloco-titulo').textContent=b.nome+' ('+b.aulas.length+(b.aulas.length>1?' tópicos':' tópico')+')';
+  const wrap=document.getElementById('aulas'); wrap.innerHTML='';
+  b.aulas.forEach((a)=>{
+    const k=PROVAS[provaAtiva].id+'_'+b.id+'_'+a.n;
+    const isStudied=!!studied[k];
+    const card=document.createElement('div');
+    card.className='aula'+(isStudied?' studied':'');
+    if(a.video){
+      card.classList.add('open');
+      card.innerHTML=`
+      <div class="aula-head" onclick="toggleAula(this)">
+        <div class="aula-num">${a.n}</div>
+        <div class="aula-titulo">${a.titulo}</div>
+        <div class="aula-check">✅</div>
+        <div class="chevron">▾</div>
+      </div>
+      <div class="aula-body">
+        ${a.desc?`<div class="sec"><div class="analogia">${a.desc}</div></div>`:''}
+        <div class="sec"><video class="video-aula" controls playsinline preload="metadata" src="${a.video}"></video></div>
+        <button class="mark-btn" onclick="marcar('${k}',this)">${isStudied?'✓ Assistido — toque para desmarcar':'Marcar como assistido 💗'}</button>
+      </div>`;
+      wrap.appendChild(card); return;
+    }
+    const conceitosHtml=a.conceitos.map(c=>`<li>${c}</li>`).join('');
+    const dadosHtml=a.dados.map(d=>`<li><span class="dado-tag">${d[0]}</span>${d[1]}</li>`).join('');
+    const flashHtml=a.flash.map(f=>`
+      <div class="flashcard" onclick="this.classList.toggle('revealed')">
+        <div class="fc-q"><span class="qmark">?</span><span>${f[0]}</span></div>
+        <div class="fc-a"><span class="resp-label">R:</span>${f[1]}</div>
+        <div class="fc-hint">toque para ver a resposta</div>
+      </div>`).join('');
+    const passosHtml = a.passos ? `
+        <div class="sec"><div class="sec-label" style="color:var(--vinho)">📋 Passo a passo</div>
+        <ol class="passos">${a.passos.map(p=>`<li>${p}</li>`).join('')}</ol></div>` : '';
+    const dadosLabel = a.dadosLabel || '📌 Números que caem na prova';
+    card.innerHTML=`
+      <div class="aula-head" onclick="toggleAula(this)">
+        <div class="aula-num">${a.n}</div>
+        <div class="aula-titulo">${a.titulo}</div>
+        <div class="aula-check">✅</div>
+        <div class="chevron">▾</div>
+      </div>
+      <div class="aula-body">
+        <div class="sec"><div class="sec-label" style="color:var(--vinho)">🔑 Frase-chave</div><div class="frase">${a.frase}</div></div>
+        <div class="sec"><div class="sec-label" style="color:var(--roxo)">🏠 Analogia do dia a dia</div><div class="analogia">${a.analogia}</div></div>
+        ${a.audio?`<div class="sec audio-box"><div class="sec-label" style="color:var(--azul)">🎧 Ouça este caso narrado</div><audio class="audio-caso" controls preload="none" src="${a.audio}"></audio></div>`:''}
+        <div class="sec"><div class="sec-label" style="color:var(--rosa)">💡 Conceitos essenciais</div><ul class="conceitos">${conceitosHtml}</ul></div>
+        ${passosHtml}
+        <div class="sec"><div class="sec-label" style="color:var(--verde)">${dadosLabel}</div><ul class="dados">${dadosHtml}</ul></div>
+        <div class="sec"><div class="sec-label" style="color:var(--rosa)">🧠 Teste-se (flashcards)</div>
+          <div class="fc-intro">Leia a pergunta, responda de cabeça, depois toque para conferir.</div>${flashHtml}</div>
+        <button class="mark-btn" onclick="marcar('${k}',this)">${isStudied?'✓ Estudado — toque para desmarcar':'Marcar como estudado 💗'}</button>
+      </div>`;
+    wrap.appendChild(card);
+  });
+}
+function toggleAula(head){ head.parentElement.classList.toggle('open'); }
+function marcar(k,btn){
+  studied[k]=!studied[k];
+  localStorage.setItem('estudo_'+PROVAS[provaAtiva].id, JSON.stringify(studied));
+  const card=btn.closest('.aula');
+  card.classList.toggle('studied',studied[k]);
+  btn.textContent=studied[k]?'✓ Estudado — toque para desmarcar':'Marcar como estudado 💗';
+  updateProgress();
+}
+function updateProgress(){
+  const tot=totalAulas();
+  let done=0;
+  PROVAS[provaAtiva].blocos.forEach(b=>b.aulas.forEach(a=>{ if(studied[PROVAS[provaAtiva].id+'_'+b.id+'_'+a.n]) done++; }));
+  const pct=tot?Math.round(done/tot*100):0;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-label').textContent=done+'/'+tot+' estudados';
+  document.getElementById('done-banner').classList.toggle('show',done===tot && tot>0);
+}
+/* ===== Player "Assistir aula" (slideshow) ===== */
+let slides=[], sIdx=0, sTimer=null, sPlaying=true;
+function durSlide(html,flash){ const len=html.replace(/<[^>]+>/g,'').length; let d=4200+len*45; if(flash) d+=2600; return Math.min(Math.max(d,5000),13000); }
+function buildSlides(p){
+  const s=[];
+  const add=(html,flash)=>s.push({html,dur:durSlide(html,flash)});
+  add(`<div class="slide-intro"><div class="slide-emoji">${p.emoji}</div><h1>${p.titulo}</h1><p>${p.desc||''}</p><div class="slide-hint">deixe tocar ▶ ou toque nas laterais da tela</div></div>`);
+  p.blocos.forEach(b=>{
+    add(`<div class="slide-bloco"><div class="slide-kicker">Bloco</div><h2>${b.nome}</h2></div>`);
+    b.aulas.forEach(a=>{
+      if(a.frase) add(`<div class="slide-card"><div class="slide-kicker">${a.titulo}</div><div class="slide-frase">🔑 ${a.frase}</div></div>`);
+      if(a.analogia) add(`<div class="slide-card"><div class="slide-kicker">Analogia</div><div class="slide-analogia">🏠 ${a.analogia}</div></div>`);
+      if(a.conceitos&&a.conceitos.length) add(`<div class="slide-card"><div class="slide-kicker">${a.titulo} · conceitos</div><ul class="slide-list">${a.conceitos.map(c=>`<li>${c}</li>`).join('')}</ul></div>`);
+      if(a.dados&&a.dados.length) add(`<div class="slide-card"><div class="slide-kicker">${a.dadosLabel||'Números'}</div><ul class="slide-dados">${a.dados.map(d=>`<li><b>${d[0]}</b> ${d[1]}</li>`).join('')}</ul></div>`);
+      (a.flash||[]).forEach(f=>add(`<div class="slide-card slide-flash"><div class="slide-kicker">Teste-se</div><div class="slide-q">❓ ${f[0]}</div><div class="slide-a">✅ ${f[1]}</div></div>`,true));
+    });
+  });
+  add(`<div class="slide-intro"><div class="slide-emoji">💗</div><h1>Você arrasou!</h1><p>Fim da aula. Bons estudos${NOME?(', '+NOME):''}. 🌹</p></div>`);
+  return s;
+}
+function abrirAula(){
+  if(provaAtiva==null || !PROVAS[provaAtiva] || !PROVAS[provaAtiva].blocos.length) return;
+  slides=buildSlides(PROVAS[provaAtiva]); sIdx=0; sPlaying=true;
+  const ov=document.getElementById('aula-player');
+  ov.classList.toggle('azul', PROVAS[provaAtiva].tema==='azul');
+  ov.classList.add('show');
+  renderSlide();
+}
+function fecharAula(){ clearTimeout(sTimer); document.getElementById('aula-player').classList.remove('show'); }
+function renderSlide(){
+  if(!slides.length) return;
+  document.getElementById('player-stage').innerHTML=slides[sIdx].html;
+  document.getElementById('player-fill').style.width=((sIdx+1)/slides.length*100)+'%';
+  document.getElementById('player-count').textContent=(sIdx+1)+' / '+slides.length;
+  clearTimeout(sTimer);
+  if(sIdx>=slides.length-1) sPlaying=false;
+  document.getElementById('player-play').textContent=sPlaying?'❚❚':'▶';
+  if(sPlaying && sIdx<slides.length-1) sTimer=setTimeout(slideNext, slides[sIdx].dur);
+}
+function slideNext(){ if(sIdx<slides.length-1){ sIdx++; renderSlide(); } else { clearTimeout(sTimer); } }
+function slidePrev(){ if(sIdx>0){ sIdx--; renderSlide(); } }
+function playPause(){ sPlaying=!sPlaying; if(sPlaying && sIdx>=slides.length-1) sIdx=0; renderSlide(); }
+function stageTap(e){ const w=window.innerWidth; if(e.clientX < w*0.32) slidePrev(); else slideNext(); }
+
+function spawnHeart(){
+  const intro=document.getElementById('intro');
+  if(!intro || intro.style.display==='none') return;
+  const h=document.createElement('div'); h.className='floating-heart';
+  const emojis=['💗','💕','💖','🌹','💝','❤️'];
+  h.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+  h.style.left=Math.random()*100+'vw';
+  h.style.fontSize=(16+Math.random()*22)+'px';
+  const dur=(4+Math.random()*4); h.style.animationDuration=dur+'s';
+  intro.appendChild(h); setTimeout(()=>h.remove(),dur*1000+200);
+}
+setInterval(()=>{ const i=document.getElementById('intro'); if(i && i.style.display!=='none' && !i.classList.contains('hide')) spawnHeart(); }, 450);
+if(NOME && NOME.trim()){ document.getElementById('intro-h1').textContent='Pra '+NOME+', com todo carinho'; }
+
+/* ===== Carrega o conteúdo do Supabase (banco alimentado pelo n8n) ===== */
+const SB_URL='{{SUPABASE_URL}}';
+const SB_KEY='{{SUPABASE_ANON_KEY}}';
+function fmtData(s){ const p=String(s).split('-'); return p[2]+'/'+p[1]; }
+async function carregarDados(){
+  try{
+    const h={apikey:SB_KEY,Authorization:'Bearer '+SB_KEY};
+    const [provas,topicos]=await Promise.all([
+      fetch(SB_URL+'/rest/v1/provas?select=*&order=ordem.asc',{headers:h}).then(r=>r.json()),
+      fetch(SB_URL+'/rest/v1/topicos?select=*&order=ordem.asc',{headers:h}).then(r=>r.json())
+    ]);
+    if(!Array.isArray(provas)||!provas.length){ renderSeletor(); return; }
+    const hoje=new Date().toISOString().slice(0,10);
+    PROVAS = provas.map(p=>{
+      const blocos=[];
+      topicos.filter(t=>t.prova_id===p.id).forEach(t=>{
+        const nome=t.bloco||'Geral';
+        let bl=blocos.find(b=>b.nome===nome);
+        if(!bl){ bl={id:'b'+blocos.length,nome,aulas:[]}; blocos.push(bl); }
+        bl.aulas.push({n:t.num,titulo:t.titulo,frase:t.frase,analogia:t.analogia,
+          conceitos:t.conceitos||[],passos:(t.passos&&t.passos.length)?t.passos:null,
+          dados:t.dados||[],dadosLabel:t.dados_label,flash:t.flash||[],
+          audio:t.audio_url,video:t.video_url});
+      });
+      const finalizada=!!(p.data_prova && p.data_prova<hoje);
+      const dia = !p.data_prova ? (p.formato||'Sempre disponível')
+        : (p.data_prova===hoje ? 'Prova de HOJE'
+        : (finalizada ? 'Finalizada · '+fmtData(p.data_prova) : 'Prova em '+fmtData(p.data_prova)));
+      return {id:p.id,emoji:p.emoji||'📚',titulo:p.titulo,dia,desc:p.materias||'',tema:p.tema||'rosa',blocos,finalizada};
+    }).sort((a,b)=>(a.finalizada?1:0)-(b.finalizada?1:0));
+    renderSeletor();
+  }catch(e){ console.error('Supabase off, usando fallback:',e); renderSeletor(); }
+}
+carregarDados();
+</script>
+</body>
+</html>

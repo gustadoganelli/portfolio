@@ -2,3 +2,5 @@
 .gh-token
 config.json
 blocklist.txt
+__pycache__/
+*.pyc
