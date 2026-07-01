@@ -38,6 +38,12 @@ Coleção de projetos de **automação de processos, painéis de dados (BI) e ap
 
 ---
 
+## 🧰 Ferramentas / Skills
+
+| Projeto | O que faz | Stack |
+|---|---|---|
+| [`skill-portfolio-modelo`](./skill-portfolio-modelo) | Skill do Claude Code que anonimiza um projeto finalizado (dados fictícios, sem credenciais/dados reais) e publica no seu repositório de portfólio, com varredura de segurança automática. Genérica e compartilhável. | Claude Code, Python |
+
 ## Como usar este repositório
 
 Cada pasta é um projeto independente com seu próprio `README.md` explicando **o que faz**, as **tecnologias** e **como rodar**. Os workflows n8n estão em `.json` prontos para importar; as ferramentas web rodam com qualquer servidor estático; a aplicação Next.js traz `.env.example` (preencha com suas próprias credenciais).

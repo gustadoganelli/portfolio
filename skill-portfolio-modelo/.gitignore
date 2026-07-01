@@ -1,0 +1,4 @@
+# NUNCA versionar segredos nem config pessoal
+.gh-token
+config.json
+blocklist.txt

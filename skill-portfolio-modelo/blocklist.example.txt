@@ -1,0 +1,10 @@
+# Termos que NUNCA podem aparecer no portfólio público (um por linha).
+# Copie para "blocklist.txt" e coloque os seus.
+# Linhas começando com # são ignoradas. A comparação é case-insensitive.
+#
+# Exemplos (troque pelos seus):
+# Nome da Empresa Cliente
+# Minha Firma Ltda
+# Filial Centro
+# joao.silva
+# maria.souza
