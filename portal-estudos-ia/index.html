@@ -6,23 +6,23 @@
 <title>Portal de Estudos com IA</title>
 <style>
   :root{
-    --rosa:#ff5e8a; --rosa-claro:#ffd6e4; --rosa-bg:#fff0f5;
-    --vinho:#b3214f; --roxo:#7a3b8f; --azul:#3b6ea5;
-    --texto:#3a2733; --suave:#7d6b74; --branco:#fff;
-    --verde:#2fa36b; --amarelo:#f6b93b;
-    --sombra:0 10px 30px rgba(179,33,79,.15);
-    --radius:18px;
+    --rosa:#4f46e5; --rosa-claro:#e0e7ff; --rosa-bg:#f8fafc;
+    --vinho:#3730a3; --roxo:#0ea5e9; --azul:#0284c7;
+    --texto:#1e293b; --suave:#64748b; --branco:#fff;
+    --verde:#16a34a; --amarelo:#d97706;
+    --sombra:0 6px 20px rgba(15,23,42,.08);
+    --radius:14px;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--texto);background:var(--rosa-bg);line-height:1.55;overflow-x:hidden;}
 
   /* ---------- TELA INICIAL ROMÂNTICA ---------- */
-  #intro{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;background:linear-gradient(160deg,#ffb3cd 0%,#ff6f9f 45%,#b3214f 100%);overflow:hidden;transition:opacity .7s ease, transform .7s ease;}
+  #intro{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;background:linear-gradient(160deg,#6366f1 0%,#4f46e5 45%,#3730a3 100%);overflow:hidden;transition:opacity .7s ease, transform .7s ease;}
   #intro.hide{opacity:0;transform:scale(1.08);pointer-events:none}
   .intro-card{position:relative;z-index:2;max-width:560px;width:100%;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.35);border-radius:26px;padding:38px 26px;box-shadow:0 20px 60px rgba(120,10,50,.35);animation:pop .9s cubic-bezier(.2,.9,.3,1.3);}
   @keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
-  .big-heart{font-size:74px;line-height:1;animation:beat 1.3s ease-in-out infinite;filter:drop-shadow(0 6px 14px rgba(120,0,40,.4))}
+  .big-heart{font-size:60px;line-height:1;filter:drop-shadow(0 6px 14px rgba(15,23,42,.18))}
   @keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.2)}30%{transform:scale(1)}45%{transform:scale(1.15)}}
   #intro h1{color:#fff;font-size:30px;margin:14px 0 6px;text-shadow:0 2px 12px rgba(120,0,40,.4)}
   #intro .sub{color:#fff;font-size:17px;opacity:.95;margin-bottom:6px}
@@ -35,7 +35,7 @@
   @keyframes rise{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.9}100%{transform:translateY(-115vh) rotate(360deg);opacity:0}}
 
   /* ---------- SELETOR DE PROVA ---------- */
-  #seletor{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:42px 20px 40px;text-align:center;background:linear-gradient(160deg,#fff0f5 0%,#ffe1ea 100%);overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  #seletor{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:42px 20px 40px;text-align:center;background:linear-gradient(160deg,#f8fafc 0%,#eef2ff 100%);overflow-y:auto;-webkit-overflow-scrolling:touch;}
   #seletor.show{display:flex;animation:fade .5s ease}
   #seletor h2{color:var(--vinho);font-size:24px;margin-bottom:6px}
   #seletor p.subt{color:var(--suave);font-size:15px;margin-bottom:26px;max-width:430px}
@@ -103,13 +103,13 @@
 
   .sec{margin-top:16px}
   .sec-label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;font-weight:800;margin-bottom:7px;display:flex;align-items:center;gap:6px}
-  .frase{background:linear-gradient(135deg,#fff0f5,#ffe1ea);border-left:5px solid var(--rosa);padding:14px 16px;border-radius:12px;font-size:16px;font-weight:600;color:var(--vinho)}
+  .frase{background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-left:5px solid var(--rosa);padding:14px 16px;border-radius:12px;font-size:16px;font-weight:600;color:var(--vinho)}
   body.quinta .frase{background:linear-gradient(135deg,#eef5fc,#dceaf8);border-left-color:var(--azul);color:#1f4773}
-  .analogia{background:#f4f0ff;border-left:5px solid var(--roxo);padding:13px 16px;border-radius:12px;font-size:15px;color:#4a2e57}
+  .analogia{background:#f0f9ff;border-left:5px solid var(--roxo);padding:13px 16px;border-radius:12px;font-size:15px;color:#4a2e57}
   ul.conceitos{list-style:none;padding:0}
   ul.conceitos li{position:relative;padding:6px 0 6px 24px;font-size:14.5px;border-bottom:1px dashed #f1dde6}
   body.quinta ul.conceitos li{border-color:#e4eef8}
-  ul.conceitos li:before{content:"💗";position:absolute;left:0;font-size:12px;top:8px}
+  ul.conceitos li:before{content:"▸";position:absolute;left:0;font-size:13px;top:7px;color:var(--rosa)}
   body.quinta ul.conceitos li:before{content:"🔹"}
   ol.passos{padding-left:0;counter-reset:p;list-style:none}
   ol.passos li{position:relative;padding:8px 0 8px 38px;font-size:14.5px;border-bottom:1px dashed #eee}
@@ -122,7 +122,7 @@
   .dado-tag{display:inline-block;background:var(--verde);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;margin-right:6px}
 
   .fc-intro{font-size:13px;color:var(--suave);margin-bottom:8px}
-  .flashcard{background:linear-gradient(135deg,#fff,#fff6f9);border:2px solid var(--rosa-claro);border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:.2s}
+  .flashcard{background:linear-gradient(135deg,#fff,#f8fafc);border:2px solid var(--rosa-claro);border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:.2s}
   body.quinta .flashcard{background:linear-gradient(135deg,#fff,#f5f9fd);border-color:#d4e4f5}
   .flashcard:active{transform:scale(.99)}
   .fc-q{font-weight:700;font-size:14.5px;display:flex;gap:8px}
@@ -144,7 +144,7 @@
   .audio-caso{width:100%;margin-top:4px;height:40px}
   .video-aula{width:100%;border-radius:12px;background:#000;display:block}
   /* modal de cadastro */
-  .modal-overlay{position:fixed;inset:0;z-index:60;display:none;align-items:flex-start;justify-content:center;background:rgba(80,10,40,.5);padding:18px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .modal-overlay{position:fixed;inset:0;z-index:60;display:none;align-items:flex-start;justify-content:center;background:rgba(15,23,42,.5);padding:18px;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .modal-overlay.show{display:flex}
   .modal-card{background:#fff;border-radius:22px;max-width:460px;width:100%;padding:26px 20px 22px;box-shadow:0 20px 60px rgba(120,10,50,.4);position:relative;margin:auto;animation:pop .4s}
   .modal-card h3{color:var(--vinho);font-size:21px;margin-bottom:4px}
@@ -163,7 +163,7 @@
   .assistir-btn{width:100%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--rosa),var(--vinho));color:#fff;font-weight:800;font-size:15.5px;padding:14px;border-radius:14px;box-shadow:var(--sombra);margin-bottom:16px;transition:.15s}
   body.quinta .assistir-btn{background:linear-gradient(135deg,#5b8fd0,#2c5a8f)}
   .assistir-btn:active{transform:scale(.98)}
-  .player-overlay{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;background:linear-gradient(160deg,#ff7aa8,#b3214f);color:#fff}
+  .player-overlay{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;background:linear-gradient(160deg,#6366f1,#3730a3);color:#fff}
   .player-overlay.show{display:flex}
   .player-overlay.azul{background:linear-gradient(160deg,#5b8fd0,#2c5a8f)}
   .player-x{position:absolute;right:14px;top:12px;z-index:3;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:18px;width:38px;height:38px;border-radius:50%;cursor:pointer}
@@ -182,7 +182,7 @@
   .slide-analogia{font-size:19px;line-height:1.55}
   .slide-list,.slide-dados{list-style:none;padding:0;text-align:left;display:inline-block;margin:0 auto}
   .slide-list li{font-size:17.5px;margin:11px 0;padding-left:26px;position:relative;line-height:1.4}
-  .slide-list li:before{content:"💗";position:absolute;left:0}
+  .slide-list li:before{content:"▸";position:absolute;left:0}
   .player-overlay.azul .slide-list li:before{content:"🔹"}
   .slide-dados li{font-size:17.5px;margin:11px 0;line-height:1.4}
   .slide-dados b{display:inline-block;background:rgba(255,255,255,.22);padding:2px 10px;border-radius:20px;margin-right:6px;font-size:13.5px;font-weight:800}
@@ -216,7 +216,7 @@
 
 <!-- ================= SELETOR DE PROVA ================= -->
 <section id="seletor">
-  <h2>Suas provas 💗</h2>
+  <h2>Suas provas</h2>
   <p class="subt">Aqui ficam suas próximas provas. Toque em uma para estudar.</p>
   <button class="nova-prova-btn" onclick="abrirFormulario()">➕ Cadastrar nova prova</button>
   <div class="prova-cards" id="prova-cards"></div>
@@ -229,7 +229,7 @@
 <div id="app">
   <header id="app-header">
     <div class="hd-top">
-      <div class="hd-title" id="hd-title">💗 Guia</div>
+      <div class="hd-title" id="hd-title">Guia</div>
       <button class="hd-back" onclick="abrirSeletor()">⇄ trocar prova</button>
     </div>
     <div class="progress-wrap">
@@ -252,7 +252,7 @@
   <div class="modal-card">
     <button class="modal-x" onclick="fecharFormulario()">✕</button>
     <h3>➕ Nova prova</h3>
-    <div class="mc-sub">Preencha, anexe o PDF do conteúdo e a IA monta a aula + o áudio. 💗</div>
+    <div class="mc-sub">Preencha, anexe o PDF do conteúdo e a IA monta a aula + o áudio.</div>
     <label>Nome da prova *<input id="f-titulo" type="text" placeholder="Ex.: Sinais Vitais"></label>
     <label>Matérias (resumo curto)<input id="f-materias" type="text" placeholder="opcional"></label>
     <label>Data da prova *<input id="f-data" type="date"></label>
@@ -311,7 +311,6 @@ let blocoAtivo = 0;
 let studied = {};
 
 function entrar(){
-  for(let i=0;i<18;i++) setTimeout(spawnHeart, i*60);
   document.getElementById('intro').classList.add('hide');
   setTimeout(abrirSeletor, 650);
 }
@@ -348,7 +347,7 @@ function renderSeletor(){
     if(p.finalizada){ fin.appendChild(cardProva(p,i)); nfin++; }
     else { at.appendChild(cardProva(p,i)); nat++; }
   });
-  if(!nat) at.innerHTML='<p class="vazio">Nenhuma prova marcada por aqui. Toque em <b>“Cadastrar nova prova”</b> para começar 💗</p>';
+  if(!nat) at.innerHTML='<p class="vazio">Nenhuma prova marcada por aqui. Toque em <b>“Cadastrar nova prova”</b> para começar.</p>';
   const fb=document.getElementById('filtro-btn');
   if(nfin){ fb.style.display='block'; fb.textContent=(finVisivel?'▲ Ocultar provas anteriores':'▼ Ver provas anteriores')+' ('+nfin+')'; }
   else { fb.style.display='none'; }
@@ -432,7 +431,7 @@ function renderAulas(){
       <div class="aula-body">
         ${a.desc?`<div class="sec"><div class="analogia">${a.desc}</div></div>`:''}
         <div class="sec"><video class="video-aula" controls playsinline preload="metadata" src="${a.video}"></video></div>
-        <button class="mark-btn" onclick="marcar('${k}',this)">${isStudied?'✓ Assistido — toque para desmarcar':'Marcar como assistido 💗'}</button>
+        <button class="mark-btn" onclick="marcar('${k}',this)">${isStudied?'✓ Assistido — toque para desmarcar':'Marcar como assistido'}</button>
       </div>`;
       wrap.appendChild(card); return;
     }
@@ -464,7 +463,7 @@ function renderAulas(){
         <div class="sec"><div class="sec-label" style="color:var(--verde)">${dadosLabel}</div><ul class="dados">${dadosHtml}</ul></div>
         <div class="sec"><div class="sec-label" style="color:var(--rosa)">🧠 Teste-se (flashcards)</div>
           <div class="fc-intro">Leia a pergunta, responda de cabeça, depois toque para conferir.</div>${flashHtml}</div>
-        <button class="mark-btn" onclick="marcar('${k}',this)">${isStudied?'✓ Estudado — toque para desmarcar':'Marcar como estudado 💗'}</button>
+        <button class="mark-btn" onclick="marcar('${k}',this)">${isStudied?'✓ Estudado — toque para desmarcar':'Marcar como estudado'}</button>
       </div>`;
     wrap.appendChild(card);
   });
@@ -475,7 +474,7 @@ function marcar(k,btn){
   localStorage.setItem('estudo_'+PROVAS[provaAtiva].id, JSON.stringify(studied));
   const card=btn.closest('.aula');
   card.classList.toggle('studied',studied[k]);
-  btn.textContent=studied[k]?'✓ Estudado — toque para desmarcar':'Marcar como estudado 💗';
+  btn.textContent=studied[k]?'✓ Estudado — toque para desmarcar':'Marcar como estudado';
   updateProgress();
 }
 function updateProgress(){
@@ -504,7 +503,7 @@ function buildSlides(p){
       (a.flash||[]).forEach(f=>add(`<div class="slide-card slide-flash"><div class="slide-kicker">Teste-se</div><div class="slide-q">❓ ${f[0]}</div><div class="slide-a">✅ ${f[1]}</div></div>`,true));
     });
   });
-  add(`<div class="slide-intro"><div class="slide-emoji">💗</div><h1>Você arrasou!</h1><p>Fim da aula. Bons estudos${NOME?(', '+NOME):''}. 🌹</p></div>`);
+  add(`<div class="slide-intro"><div class="slide-emoji">✅</div><h1>Concluído</h1><p>Fim da aula. Bons estudos${NOME?(', '+NOME):''}.</p></div>`);
   return s;
 }
 function abrirAula(){
@@ -531,19 +530,8 @@ function slidePrev(){ if(sIdx>0){ sIdx--; renderSlide(); } }
 function playPause(){ sPlaying=!sPlaying; if(sPlaying && sIdx>=slides.length-1) sIdx=0; renderSlide(); }
 function stageTap(e){ const w=window.innerWidth; if(e.clientX < w*0.32) slidePrev(); else slideNext(); }
 
-function spawnHeart(){
-  const intro=document.getElementById('intro');
-  if(!intro || intro.style.display==='none') return;
-  const h=document.createElement('div'); h.className='floating-heart';
-  const emojis=['💗','💕','💖','🌹','💝','❤️'];
-  h.textContent=emojis[Math.floor(Math.random()*emojis.length)];
-  h.style.left=Math.random()*100+'vw';
-  h.style.fontSize=(16+Math.random()*22)+'px';
-  const dur=(4+Math.random()*4); h.style.animationDuration=dur+'s';
-  intro.appendChild(h); setTimeout(()=>h.remove(),dur*1000+200);
-}
-setInterval(()=>{ const i=document.getElementById('intro'); if(i && i.style.display!=='none' && !i.classList.contains('hide')) spawnHeart(); }, 450);
-if(NOME && NOME.trim()){ document.getElementById('intro-h1').textContent='Pra '+NOME+', com todo carinho'; }
+
+if(NOME && NOME.trim()){ document.getElementById('intro-h1').textContent='Estudos de '+NOME; }
 
 /* ===== Carrega o conteúdo do Supabase (banco alimentado pelo n8n) ===== */
 const SB_URL='{{SUPABASE_URL}}';

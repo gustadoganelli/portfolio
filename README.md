@@ -35,6 +35,7 @@ Coleção de projetos de **automação de processos, painéis de dados (BI) e ap
 |---|---|---|
 | [`app-registro-doacoes`](./app-registro-doacoes) | Aplicação de registro de doações/itens com fila, status, login e detalhes. | Next.js (App Router), Supabase |
 | [`sistema-auditoria`](./sistema-auditoria) | Sistema de auditoria interna: app PWA (offline) para checklists e não conformidades em campo + painel de resultados + schema. | React, Vite, TypeScript, PostgreSQL |
+| [`portal-estudos-ia`](./portal-estudos-ia) | Envie o PDF de um conteúdo e uma IA monta a aula (frase-chave, conceitos, "números que caem na prova", flashcards) + modo slideshow. | HTML/JS, Cloudflare Pages Functions, Supabase, IA |
 
 ---
 
