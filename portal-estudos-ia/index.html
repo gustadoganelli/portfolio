@@ -2,70 +2,70 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portal de Estudos com IA</title>
 <style>
   :root{
-    --rosa:#4f46e5; --rosa-claro:#e0e7ff; --rosa-bg:#f8fafc;
-    --vinho:#3730a3; --roxo:#0ea5e9; --azul:#0284c7;
-    --texto:#1e293b; --suave:#64748b; --branco:#fff;
-    --verde:#16a34a; --amarelo:#d97706;
+    --cor-primaria:#4f46e5; --cor-linha:#e0e7ff; --cor-fundo:#f8fafc;
+    --cor-primaria-esc:#3730a3; --cor-acento:#0ea5e9; --cor-alt:#0284c7;
+    --cor-texto:#1e293b; --cor-suave:#64748b; --cor-branco:#fff;
+    --cor-ok:#16a34a; --cor-alerta:#d97706;
     --sombra:0 6px 20px rgba(15,23,42,.08);
     --radius:14px;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--texto);background:var(--rosa-bg);line-height:1.55;overflow-x:hidden;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--cor-texto);background:var(--cor-fundo);line-height:1.55;overflow-x:hidden;}
 
-  /* ---------- TELA INICIAL ROMÂNTICA ---------- */
+  /* ---------- TELA INICIAL ---------- */
   #intro{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;background:linear-gradient(160deg,#6366f1 0%,#4f46e5 45%,#3730a3 100%);overflow:hidden;transition:opacity .7s ease, transform .7s ease;}
   #intro.hide{opacity:0;transform:scale(1.08);pointer-events:none}
-  .intro-card{position:relative;z-index:2;max-width:560px;width:100%;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.35);border-radius:26px;padding:38px 26px;box-shadow:0 20px 60px rgba(120,10,50,.35);animation:pop .9s cubic-bezier(.2,.9,.3,1.3);}
+  .intro-card{position:relative;z-index:2;max-width:560px;width:100%;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.35);border-radius:26px;padding:38px 26px;box-shadow:0 20px 60px rgba(15,23,42,.35);animation:pop .9s cubic-bezier(.2,.9,.3,1.3);}
   @keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
   .big-heart{font-size:60px;line-height:1;filter:drop-shadow(0 6px 14px rgba(15,23,42,.18))}
-  @keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.2)}30%{transform:scale(1)}45%{transform:scale(1.15)}}
-  #intro h1{color:#fff;font-size:30px;margin:14px 0 6px;text-shadow:0 2px 12px rgba(120,0,40,.4)}
+  
+  #intro h1{color:#fff;font-size:30px;margin:14px 0 6px;text-shadow:0 2px 12px rgba(15,23,42,.4)}
   #intro .sub{color:#fff;font-size:17px;opacity:.95;margin-bottom:6px}
   #intro .msg{color:#fff;font-size:16px;opacity:.96;margin:16px auto 4px;max-width:440px}
   #intro .assina{color:#ffe3ec;font-size:15px;margin-top:18px;font-style:italic}
-  .start-btn{margin-top:26px;border:none;cursor:pointer;background:#fff;color:var(--vinho);font-weight:800;font-size:18px;padding:16px 40px;border-radius:50px;box-shadow:0 10px 24px rgba(120,0,40,.35);transition:transform .15s ease, box-shadow .15s ease;}
-  .start-btn:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 16px 30px rgba(120,0,40,.45)}
+  .start-btn{margin-top:26px;border:none;cursor:pointer;background:#fff;color:var(--cor-primaria-esc);font-weight:800;font-size:18px;padding:16px 40px;border-radius:50px;box-shadow:0 10px 24px rgba(15,23,42,.35);transition:transform .15s ease, box-shadow .15s ease;}
+  .start-btn:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 16px 30px rgba(15,23,42,.45)}
   .start-btn:active{transform:scale(.97)}
-  .floating-heart{position:absolute;bottom:-40px;font-size:24px;z-index:1;pointer-events:none;opacity:.85;animation:rise linear forwards}
-  @keyframes rise{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:.9}100%{transform:translateY(-115vh) rotate(360deg);opacity:0}}
+  
+  
 
   /* ---------- SELETOR DE PROVA ---------- */
   #seletor{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:42px 20px 40px;text-align:center;background:linear-gradient(160deg,#f8fafc 0%,#eef2ff 100%);overflow-y:auto;-webkit-overflow-scrolling:touch;}
   #seletor.show{display:flex;animation:fade .5s ease}
-  #seletor h2{color:var(--vinho);font-size:24px;margin-bottom:6px}
-  #seletor p.subt{color:var(--suave);font-size:15px;margin-bottom:26px;max-width:430px}
+  #seletor h2{color:var(--cor-primaria-esc);font-size:24px;margin-bottom:6px}
+  #seletor p.subt{color:var(--cor-suave);font-size:15px;margin-bottom:26px;max-width:430px}
   .prova-cards{display:flex;flex-direction:column;gap:16px;width:100%;max-width:440px}
   .prova-card{background:#fff;border-radius:20px;padding:22px 20px;cursor:pointer;text-align:left;box-shadow:var(--sombra);border:2px solid transparent;transition:.2s;position:relative;overflow:hidden;}
-  .prova-card:hover{transform:translateY(-3px);border-color:var(--rosa)}
+  .prova-card:hover{transform:translateY(-3px);border-color:var(--cor-primaria)}
   .prova-card:active{transform:scale(.98)}
   .prova-card .pc-emoji{font-size:34px}
-  .prova-card .pc-dia{display:inline-block;font-size:11.5px;font-weight:800;color:#fff;background:var(--rosa);padding:3px 10px;border-radius:20px;margin:8px 0}
-  .prova-card.quinta .pc-dia{background:var(--azul)}
-  .prova-card h3{font-size:18px;color:var(--vinho);margin-bottom:4px}
-  .prova-card.quinta h3{color:var(--azul)}
-  .prova-card .pc-desc{font-size:13.5px;color:var(--suave)}
-  .prova-card .pc-go{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:24px;color:var(--rosa)}
-  .seletor-voltar{margin-top:24px;background:none;border:none;color:var(--suave);font-size:13px;cursor:pointer;text-decoration:underline}
+  .prova-card .pc-dia{display:inline-block;font-size:11.5px;font-weight:800;color:#fff;background:var(--cor-primaria);padding:3px 10px;border-radius:20px;margin:8px 0}
+  .prova-card.quinta .pc-dia{background:var(--cor-alt)}
+  .prova-card h3{font-size:18px;color:var(--cor-primaria-esc);margin-bottom:4px}
+  .prova-card.quinta h3{color:var(--cor-alt)}
+  .prova-card .pc-desc{font-size:13.5px;color:var(--cor-suave)}
+  .prova-card .pc-go{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:24px;color:var(--cor-primaria)}
+  .seletor-voltar{margin-top:24px;background:none;border:none;color:var(--cor-suave);font-size:13px;cursor:pointer;text-decoration:underline}
   .prova-card.finalizada{opacity:.6}
   .prova-card.finalizada .pc-dia{background:#9a8a93}
-  .prova-card.finalizada .pc-go{color:var(--verde)}
-  .nova-prova-btn{width:100%;max-width:440px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--rosa),var(--vinho));color:#fff;font-weight:800;font-size:16px;padding:17px;border-radius:16px;box-shadow:var(--sombra);margin-bottom:18px;transition:.15s}
+  .prova-card.finalizada .pc-go{color:var(--cor-ok)}
+  .nova-prova-btn{width:100%;max-width:440px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--cor-primaria),var(--cor-primaria-esc));color:#fff;font-weight:800;font-size:16px;padding:17px;border-radius:16px;box-shadow:var(--sombra);margin-bottom:18px;transition:.15s}
   .nova-prova-btn:active{transform:scale(.98)}
-  .filtro-btn{width:100%;max-width:440px;background:#fff;border:1.5px solid var(--rosa-claro);color:var(--vinho);font-weight:700;font-size:14px;padding:13px;border-radius:14px;cursor:pointer;margin-top:8px}
+  .filtro-btn{width:100%;max-width:440px;background:#fff;border:1.5px solid var(--cor-linha);color:var(--cor-primaria-esc);font-weight:700;font-size:14px;padding:13px;border-radius:14px;cursor:pointer;margin-top:8px}
   .filtro-btn:active{transform:scale(.98)}
   .prova-cards-fin{margin-top:12px}
-  .vazio{color:var(--suave);font-size:14.5px;padding:14px;text-align:center;background:#fff;border-radius:16px;box-shadow:var(--sombra)}
+  .vazio{color:var(--cor-suave);font-size:14.5px;padding:14px;text-align:center;background:#fff;border-radius:16px;box-shadow:var(--sombra)}
 
   /* ---------- APP DE ESTUDO ---------- */
   #app{display:none;min-height:100%;flex-direction:column}
   #app.show{display:flex;animation:fade .8s ease}
   @keyframes fade{from{opacity:0}to{opacity:1}}
-  header{position:sticky;top:0;z-index:20;color:#fff;padding:14px 16px;box-shadow:0 4px 18px rgba(179,33,79,.3);background:linear-gradient(135deg,var(--rosa) 0%,var(--vinho) 100%);}
+  header{position:sticky;top:0;z-index:20;color:#fff;padding:14px 16px;box-shadow:0 4px 18px rgba(15,23,42,.3);background:linear-gradient(135deg,var(--cor-primaria) 0%,var(--cor-primaria-esc) 100%);}
   header.quinta{background:linear-gradient(135deg,#5b8fd0 0%,#2c5a8f 100%)}
   .hd-top{display:flex;align-items:center;gap:10px;justify-content:space-between}
   .hd-title{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
@@ -78,89 +78,89 @@
 
   .tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 14px;background:#fff;position:sticky;top:104px;z-index:15;box-shadow:0 2px 8px rgba(0,0,0,.04);-webkit-overflow-scrolling:touch}
   .tabs::-webkit-scrollbar{display:none}
-  .tab{flex:0 0 auto;border:1.5px solid var(--rosa-claro);background:#fff;color:var(--vinho);padding:9px 15px;border-radius:30px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.2s}
-  .tab.active{background:var(--rosa);color:#fff;border-color:var(--rosa);box-shadow:var(--sombra)}
-  body.quinta .tab{border-color:#cfe0f2;color:var(--azul)}
-  body.quinta .tab.active{background:var(--azul);color:#fff;border-color:var(--azul)}
+  .tab{flex:0 0 auto;border:1.5px solid var(--cor-linha);background:#fff;color:var(--cor-primaria-esc);padding:9px 15px;border-radius:30px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.2s}
+  .tab.active{background:var(--cor-primaria);color:#fff;border-color:var(--cor-primaria);box-shadow:var(--sombra)}
+  body.quinta .tab{border-color:#cfe0f2;color:var(--cor-alt)}
+  body.quinta .tab.active{background:var(--cor-alt);color:#fff;border-color:var(--cor-alt)}
 
   main{flex:1;padding:16px 14px 60px;max-width:760px;margin:0 auto;width:100%}
-  .bloco-titulo{font-size:15px;color:var(--suave);margin:6px 4px 14px;font-weight:600}
+  .bloco-titulo{font-size:15px;color:var(--cor-suave);margin:6px 4px 14px;font-weight:600}
 
   .aula{background:#fff;border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--sombra);overflow:hidden;border:1px solid #ffe1ea}
   body.quinta .aula{border-color:#e2edf8}
   .aula-head{display:flex;align-items:center;gap:12px;padding:16px 16px;cursor:pointer}
-  .aula-num{flex:0 0 auto;min-width:42px;height:38px;padding:0 8px;border-radius:12px;background:var(--rosa-bg);color:var(--vinho);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
-  body.quinta .aula-num{background:#eaf2fb;color:var(--azul)}
+  .aula-num{flex:0 0 auto;min-width:42px;height:38px;padding:0 8px;border-radius:12px;background:var(--cor-fundo);color:var(--cor-primaria-esc);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+  body.quinta .aula-num{background:#eaf2fb;color:var(--cor-alt)}
   .aula-titulo{flex:1;font-weight:700;font-size:15px}
   .aula-check{flex:0 0 auto;font-size:20px;opacity:.25;transition:.2s}
   .aula.studied .aula-check{opacity:1}
-  .aula.studied .aula-num{background:var(--verde);color:#fff}
-  .chevron{flex:0 0 auto;transition:transform .3s ease;color:var(--rosa);font-size:18px}
-  body.quinta .chevron{color:var(--azul)}
+  .aula.studied .aula-num{background:var(--cor-ok);color:#fff}
+  .chevron{flex:0 0 auto;transition:transform .3s ease;color:var(--cor-primaria);font-size:18px}
+  body.quinta .chevron{color:var(--cor-alt)}
   .aula.open .chevron{transform:rotate(180deg)}
   .aula-body{max-height:0;overflow:hidden;transition:max-height .5s ease;padding:0 16px}
   .aula.open .aula-body{max-height:9000px;padding-bottom:16px}
 
   .sec{margin-top:16px}
   .sec-label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;font-weight:800;margin-bottom:7px;display:flex;align-items:center;gap:6px}
-  .frase{background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-left:5px solid var(--rosa);padding:14px 16px;border-radius:12px;font-size:16px;font-weight:600;color:var(--vinho)}
-  body.quinta .frase{background:linear-gradient(135deg,#eef5fc,#dceaf8);border-left-color:var(--azul);color:#1f4773}
-  .analogia{background:#f0f9ff;border-left:5px solid var(--roxo);padding:13px 16px;border-radius:12px;font-size:15px;color:#4a2e57}
+  .frase{background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-left:5px solid var(--cor-primaria);padding:14px 16px;border-radius:12px;font-size:16px;font-weight:600;color:var(--cor-primaria-esc)}
+  body.quinta .frase{background:linear-gradient(135deg,#eef5fc,#dceaf8);border-left-color:var(--cor-alt);color:#1f4773}
+  .analogia{background:#f0f9ff;border-left:5px solid var(--cor-acento);padding:13px 16px;border-radius:12px;font-size:15px;color:#4a2e57}
   ul.conceitos{list-style:none;padding:0}
   ul.conceitos li{position:relative;padding:6px 0 6px 24px;font-size:14.5px;border-bottom:1px dashed #f1dde6}
   body.quinta ul.conceitos li{border-color:#e4eef8}
-  ul.conceitos li:before{content:"▸";position:absolute;left:0;font-size:13px;top:7px;color:var(--rosa)}
+  ul.conceitos li:before{content:"▸";position:absolute;left:0;font-size:13px;top:7px;color:var(--cor-primaria)}
   body.quinta ul.conceitos li:before{content:"🔹"}
   ol.passos{padding-left:0;counter-reset:p;list-style:none}
   ol.passos li{position:relative;padding:8px 0 8px 38px;font-size:14.5px;border-bottom:1px dashed #eee}
-  ol.passos li:before{counter-increment:p;content:counter(p);position:absolute;left:0;top:7px;width:25px;height:25px;background:var(--vinho);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
-  body.quinta ol.passos li:before{background:var(--azul)}
+  ol.passos li:before{counter-increment:p;content:counter(p);position:absolute;left:0;top:7px;width:25px;height:25px;background:var(--cor-primaria-esc);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+  body.quinta ol.passos li:before{background:var(--cor-alt)}
   .dados{background:#f0f8f3;border:1px solid #cdeede;border-radius:12px;padding:6px 14px;list-style:none}
   .dados li{padding:8px 0;font-size:14.5px;border-bottom:1px dashed #d7eee1}
   .dados li:last-child{border-bottom:none}
-  .dados b{color:var(--verde)}
-  .dado-tag{display:inline-block;background:var(--verde);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;margin-right:6px}
+  .dados b{color:var(--cor-ok)}
+  .dado-tag{display:inline-block;background:var(--cor-ok);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;margin-right:6px}
 
-  .fc-intro{font-size:13px;color:var(--suave);margin-bottom:8px}
-  .flashcard{background:linear-gradient(135deg,#fff,#f8fafc);border:2px solid var(--rosa-claro);border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:.2s}
+  .fc-intro{font-size:13px;color:var(--cor-suave);margin-bottom:8px}
+  .flashcard{background:linear-gradient(135deg,#fff,#f8fafc);border:2px solid var(--cor-linha);border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:.2s}
   body.quinta .flashcard{background:linear-gradient(135deg,#fff,#f5f9fd);border-color:#d4e4f5}
   .flashcard:active{transform:scale(.99)}
   .fc-q{font-weight:700;font-size:14.5px;display:flex;gap:8px}
-  .fc-q .qmark{color:var(--rosa);font-weight:800}
-  body.quinta .fc-q .qmark{color:var(--azul)}
-  .fc-a{max-height:0;overflow:hidden;transition:max-height .4s ease, margin .3s, opacity .3s;opacity:0;font-size:14.5px;color:var(--texto)}
-  .flashcard.revealed{border-color:var(--verde);background:linear-gradient(135deg,#f3fbf6,#eafaf1)}
+  .fc-q .qmark{color:var(--cor-primaria);font-weight:800}
+  body.quinta .fc-q .qmark{color:var(--cor-alt)}
+  .fc-a{max-height:0;overflow:hidden;transition:max-height .4s ease, margin .3s, opacity .3s;opacity:0;font-size:14.5px;color:var(--cor-texto)}
+  .flashcard.revealed{border-color:var(--cor-ok);background:linear-gradient(135deg,#f3fbf6,#eafaf1)}
   .flashcard.revealed .fc-a{max-height:500px;margin-top:10px;opacity:1;padding-top:10px;border-top:1px dashed #cfe9da}
-  .fc-hint{font-size:11.5px;color:var(--rosa);margin-top:8px;font-weight:600}
-  body.quinta .fc-hint{color:var(--azul)}
-  .flashcard.revealed .fc-hint{color:var(--verde)}
-  .fc-a .resp-label{font-weight:800;color:var(--verde);margin-right:5px}
+  .fc-hint{font-size:11.5px;color:var(--cor-primaria);margin-top:8px;font-weight:600}
+  body.quinta .fc-hint{color:var(--cor-alt)}
+  .flashcard.revealed .fc-hint{color:var(--cor-ok)}
+  .fc-a .resp-label{font-weight:800;color:var(--cor-ok);margin-right:5px}
 
-  .mark-btn{margin-top:18px;width:100%;border:none;cursor:pointer;padding:13px;border-radius:12px;font-weight:800;font-size:14.5px;background:var(--rosa-bg);color:var(--vinho);transition:.2s;border:2px solid var(--rosa-claro)}
-  body.quinta .mark-btn{background:#eaf2fb;color:var(--azul);border-color:#d4e4f5}
+  .mark-btn{margin-top:18px;width:100%;border:none;cursor:pointer;padding:13px;border-radius:12px;font-weight:800;font-size:14.5px;background:var(--cor-fundo);color:var(--cor-primaria-esc);transition:.2s;border:2px solid var(--cor-linha)}
+  body.quinta .mark-btn{background:#eaf2fb;color:var(--cor-alt);border-color:#d4e4f5}
   .mark-btn:active{transform:scale(.98)}
-  .aula.studied .mark-btn{background:var(--verde);color:#fff;border-color:var(--verde)}
+  .aula.studied .mark-btn{background:var(--cor-ok);color:#fff;border-color:var(--cor-ok)}
   .audio-box{background:#eef5fc;border:1px solid #cfe0f2;border-radius:12px;padding:12px 14px}
   .audio-caso{width:100%;margin-top:4px;height:40px}
   .video-aula{width:100%;border-radius:12px;background:#000;display:block}
   /* modal de cadastro */
   .modal-overlay{position:fixed;inset:0;z-index:60;display:none;align-items:flex-start;justify-content:center;background:rgba(15,23,42,.5);padding:18px;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .modal-overlay.show{display:flex}
-  .modal-card{background:#fff;border-radius:22px;max-width:460px;width:100%;padding:26px 20px 22px;box-shadow:0 20px 60px rgba(120,10,50,.4);position:relative;margin:auto;animation:pop .4s}
-  .modal-card h3{color:var(--vinho);font-size:21px;margin-bottom:4px}
-  .modal-card .mc-sub{color:var(--suave);font-size:13px;margin-bottom:8px}
-  .modal-x{position:absolute;right:12px;top:10px;border:none;background:none;font-size:22px;color:var(--suave);cursor:pointer;line-height:1;padding:6px}
-  .modal-card label{display:block;font-size:13px;font-weight:700;color:var(--texto);margin-top:13px}
-  .modal-card input,.modal-card select{width:100%;margin-top:5px;padding:14px;border:1.5px solid var(--rosa-claro);border-radius:12px;font-size:16px;font-family:inherit;background:#fff;color:var(--texto)}
-  .modal-card input:focus,.modal-card select:focus{outline:none;border-color:var(--rosa)}
-  .form-gerar{width:100%;margin-top:20px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--rosa),var(--vinho));color:#fff;font-weight:800;font-size:16px;padding:16px;border-radius:14px;transition:.15s}
+  .modal-card{background:#fff;border-radius:22px;max-width:460px;width:100%;padding:26px 20px 22px;box-shadow:0 20px 60px rgba(15,23,42,.4);position:relative;margin:auto;animation:pop .4s}
+  .modal-card h3{color:var(--cor-primaria-esc);font-size:21px;margin-bottom:4px}
+  .modal-card .mc-sub{color:var(--cor-suave);font-size:13px;margin-bottom:8px}
+  .modal-x{position:absolute;right:12px;top:10px;border:none;background:none;font-size:22px;color:var(--cor-suave);cursor:pointer;line-height:1;padding:6px}
+  .modal-card label{display:block;font-size:13px;font-weight:700;color:var(--cor-texto);margin-top:13px}
+  .modal-card input,.modal-card select{width:100%;margin-top:5px;padding:14px;border:1.5px solid var(--cor-linha);border-radius:12px;font-size:16px;font-family:inherit;background:#fff;color:var(--cor-texto)}
+  .modal-card input:focus,.modal-card select:focus{outline:none;border-color:var(--cor-primaria)}
+  .form-gerar{width:100%;margin-top:20px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--cor-primaria),var(--cor-primaria-esc));color:#fff;font-weight:800;font-size:16px;padding:16px;border-radius:14px;transition:.15s}
   .form-gerar:active{transform:scale(.98)}
   .form-gerar:disabled{opacity:.55}
-  .form-status{margin-top:12px;font-size:13.5px;text-align:center;color:var(--suave);min-height:18px;line-height:1.4}
-  .form-status.erro{color:var(--vinho);font-weight:700}
-  .form-status.ok{color:var(--verde);font-weight:700}
+  .form-status{margin-top:12px;font-size:13.5px;text-align:center;color:var(--cor-suave);min-height:18px;line-height:1.4}
+  .form-status.erro{color:var(--cor-primaria-esc);font-weight:700}
+  .form-status.ok{color:var(--cor-ok);font-weight:700}
   /* player de aula (slideshow) */
-  .assistir-btn{width:100%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--rosa),var(--vinho));color:#fff;font-weight:800;font-size:15.5px;padding:14px;border-radius:14px;box-shadow:var(--sombra);margin-bottom:16px;transition:.15s}
+  .assistir-btn{width:100%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--cor-primaria),var(--cor-primaria-esc));color:#fff;font-weight:800;font-size:15.5px;padding:14px;border-radius:14px;box-shadow:var(--sombra);margin-bottom:16px;transition:.15s}
   body.quinta .assistir-btn{background:linear-gradient(135deg,#5b8fd0,#2c5a8f)}
   .assistir-btn:active{transform:scale(.98)}
   .player-overlay{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;background:linear-gradient(160deg,#6366f1,#3730a3);color:#fff}
@@ -194,10 +194,12 @@
   .player-ctrl button{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:19px;width:56px;height:56px;border-radius:50%;cursor:pointer}
   .player-ctrl button:active{transform:scale(.93)}
 
-  .footer-love{text-align:center;padding:28px 16px 40px;color:var(--suave);font-size:13.5px}
-  .footer-love b{color:var(--rosa)}
-  .done-banner{display:none;background:linear-gradient(135deg,var(--verde),#1f8a57);color:#fff;text-align:center;padding:18px;border-radius:16px;margin-bottom:16px;font-weight:700;animation:pop .6s}
+  .footer-love{text-align:center;padding:28px 16px 40px;color:var(--cor-suave);font-size:13.5px}
+  .footer-love b{color:var(--cor-primaria)}
+  .done-banner{display:none;background:linear-gradient(135deg,var(--cor-ok),#1f8a57);color:#fff;text-align:center;padding:18px;border-radius:16px;margin-bottom:16px;font-weight:700;animation:pop .6s}
   .done-banner.show{display:block}
+  .demo-badge{display:inline-block;margin:0 auto 6px;background:rgba(15,23,42,.10);color:#334155;font-size:11.5px;font-weight:700;padding:5px 12px;border-radius:20px;letter-spacing:.3px}
+  :focus-visible{outline:2px solid var(--cor-primaria);outline-offset:2px}
 </style>
 </head>
 <body>
@@ -210,6 +212,7 @@
     <p class="sub">Estude qualquer matéria com IA ✨</p>
     <p class="msg" id="intro-msg">Escolha a matéria que você quer dominar, anexe o PDF do conteúdo e a IA monta a aula pra você: frase-chave, analogias, conceitos, números e flashcards. Vá fundo no assunto que quiser.</p>
     <p class="assina">Escolha o assunto e vá fundo. 🚀</p>
+    <div class="demo-badge">Demonstração · dados fictícios</div>
     <button class="start-btn" onclick="entrar()">Começar 📚</button>
   </div>
 </section>
@@ -283,32 +286,2352 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-/* ====== PERSONALIZE AQUI ====== */
-const NOME = "";
 if(window.pdfjsLib){ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }
 
 /* === conteúdo reutilizado nas duas provas === */
-let PROVAS = [   /* fallback offline; o conteúdo real vem do Supabase */
-{ id:"exemplo", emoji:"\ud83e\ude90", titulo:"Sistema Solar (exemplo)", dia:"Matéria de exemplo", tema:"rosa",
-  desc:"Conteúdo de demonstração — cadastre suas próprias matérias enviando um PDF.",
-  blocos:[
-    { id:"b0", nome:"\ud83e\ude90 Sistema Solar", aulas:[
-      { n:"1", titulo:"Os planetas",
-        frase:"O Sistema Solar tem 8 planetas que orbitam o Sol, divididos em rochosos e gasosos.",
-        analogia:"É como uma pista com 8 carros girando em volta de um farol central: o Sol.",
-        conceitos:["Planetas rochosos: Mercúrio, Vênus, Terra e Marte.","Gigantes gasosos: Júpiter, Saturno, Urano e Netuno.","O Sol concentra cerca de 99% da massa do Sistema Solar."],
-        dadosLabel:"\ud83d\udccc Números de exemplo",
-        dados:[["PLANETAS","8 no total"],["MAIOR","Júpiter"],["MAIS PRÓXIMO","Mercúrio"]],
-        flash:[["Quantos planetas há no Sistema Solar?","8."],["Qual é o maior planeta?","Júpiter."],["Qual o planeta mais próximo do Sol?","Mercúrio."]] }
-    ]}
-  ]
+let PROVAS = [
+{
+"blocos": [
+{
+"id": "formacao-estrutura",
+"nome": "Formação e Estrutura do Sistema Solar",
+"aulas": [
+{
+"n": "1",
+"titulo": "A Nebulosa Solar e a Formação do Sol",
+"frase": "O Sistema Solar nasceu do colapso gravitacional de uma nuvem de gás e poeira que girava cada vez mais rápido ao se contrair.",
+"analogia": "É como um patinador no gelo que recolhe os braços e gira mais depressa: a nuvem, ao encolher, gira mais rápido e se achata num disco, exatamente como a massa de pizza que se espalha em disco quando o pizzaiolo a roda no ar.",
+"conceitos": [
+"Hipótese nebular: uma nuvem molecular de gás (H e He) e poeira colapsou por gravidade há cerca de 4,6 bilhões de anos, possivelmente disparada pela onda de choque de uma supernova próxima.",
+"Conservação do momento angular: ao contrair, a nuvem gira mais rápido e se achata num disco protoplanetário, com o Sol se formando no centro denso.",
+"O Sol concentra 99,86% de toda a massa do Sistema Solar; brilha por fusão nuclear que converte hidrogênio em hélio no núcleo a cerca de 15 milhões de kelvin.",
+"Linha de gelo (frost line): a partir de ~2,7 UA a temperatura permite que voláteis (água, metano) congelem, separando planetas rochosos internos dos gigantes gasosos externos."
+],
+"passos": [
+"Nuvem molecular fria e densa começa a colapsar por instabilidade gravitacional.",
+"A contração aumenta a rotação (momento angular) e a nuvem se achata em disco protoplanetário.",
+"O centro acumula massa, aquece e, ao atingir ~10 milhões K, inicia a fusão nuclear: nasce o Sol (protoestrela → estrela).",
+"Poeira no disco se aglomera por acreção formando planetesimais, que colidem e crescem em protoplanetas.",
+"O vento solar do jovem Sol varre o gás residual, deixando os planetas em suas órbitas."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Idade do Sistema Solar",
+"~4,6 bilhões de anos"
+],
+[
+"Massa do Sol / total do SS",
+"99,86%"
+],
+[
+"Temperatura do núcleo solar",
+"~15 milhões K"
+],
+[
+"Linha de gelo",
+"~2,7 UA (cinturão de asteroides)"
+]
+],
+"flash": [
+[
+"Qual hipótese explica a formação do Sistema Solar?",
+"A hipótese nebular: colapso gravitacional de uma nuvem de gás e poeira em rotação."
+],
+[
+"Por que o disco protoplanetário se achata?",
+"Pela conservação do momento angular durante a contração da nuvem em rotação."
+],
+[
+"O que é a linha de gelo (frost line)?",
+"A distância (~2,7 UA) a partir da qual voláteis congelam, separando planetas rochosos de gasosos."
+],
+[
+"Que reação alimenta o Sol?",
+"A fusão nuclear de hidrogênio em hélio (cadeia próton-próton) no núcleo."
+]
+]
+},
+{
+"n": "2",
+"titulo": "Planetas Rochosos x Gigantes Gasosos",
+"frase": "A distância à linha de gelo dividiu o Sistema Solar em pequenos mundos rochosos densos e enormes gigantes de gás e gelo.",
+"analogia": "Perto da fogueira (o Sol) só sobra o material 'pesado' que não evapora, formando pedras pequenas; longe do calor, o vapor congela e se acumula, formando bolas gigantes e fofas, como neve que se junta longe da lareira.",
+"conceitos": [
+"Planetas telúricos (Mercúrio, Vênus, Terra, Marte): pequenos, rochosos, densos (~3,9-5,5 g/cm³), poucas ou nenhuma lua, sem anéis.",
+"Gigantes gasosos (Júpiter, Saturno): compostos sobretudo de H e He, baixa densidade; Saturno tem densidade 0,69 g/cm³, menor que a da água.",
+"Gigantes de gelo (Urano, Netuno): ricos em água, metano e amônia congelados; o metano dá a cor azulada por absorver a luz vermelha.",
+"Todos os quatro gigantes possuem sistemas de anéis e muitas luas; Júpiter e Saturno lideram em número de satélites conhecidos."
+],
+"dadosLabel": "Densidades e tamanhos-chave",
+"dados": [
+[
+"Densidade da Terra",
+"5,51 g/cm³ (a maior)"
+],
+[
+"Densidade de Saturno",
+"0,69 g/cm³ (< água)"
+],
+[
+"Maior planeta",
+"Júpiter (~11 diâmetros terrestres)"
+],
+[
+"Menor planeta",
+"Mercúrio (~0,38 diâmetro terrestre)"
+]
+],
+"flash": [
+[
+"Quais são os quatro planetas rochosos?",
+"Mercúrio, Vênus, Terra e Marte."
+],
+[
+"Por que Urano e Netuno são azulados?",
+"O metano na atmosfera absorve a luz vermelha e reflete a azul."
+],
+[
+"Qual planeta é menos denso que a água?",
+"Saturno (0,69 g/cm³)."
+],
+[
+"Diferença entre gigante gasoso e gigante de gelo?",
+"Gasosos (Júpiter, Saturno) são sobretudo H/He; de gelo (Urano, Netuno) têm mais água, metano e amônia congelados."
+]
+]
 }
-];
+]
+},
+{
+"id": "leis-movimento",
+"nome": "Leis do Movimento Orbital",
+"aulas": [
+{
+"n": "3",
+"titulo": "As Três Leis de Kepler",
+"frase": "Os planetas percorrem elipses, varrem áreas iguais em tempos iguais e têm períodos ligados matematicamente ao tamanho da órbita.",
+"analogia": "A 2ª lei é como um carro numa pista oval: ele acelera nas curvas fechadas (perto do Sol) e desacelera nas retas longas (longe do Sol), sempre 'cobrindo' a mesma área do setor no mesmo tempo.",
+"conceitos": [
+"1ª Lei (das órbitas): cada planeta descreve uma elipse com o Sol num dos focos, não no centro.",
+"2ª Lei (das áreas): a linha que liga o planeta ao Sol varre áreas iguais em intervalos de tempo iguais — o planeta é mais rápido no periélio e mais lento no afélio.",
+"3ª Lei (dos períodos): T² é proporcional a a³, onde T é o período orbital e a o semieixo maior. Em unidades astronômicas e anos: T² = a³.",
+"Periélio = ponto mais próximo do Sol; afélio = ponto mais distante. A excentricidade (e) mede o 'achatamento' da elipse (e=0 é círculo)."
+],
+"passos": [
+"Para achar o período de um planeta, use a 3ª Lei: T² = a³ (com T em anos e a em UA).",
+"Meça o semieixo maior 'a' em UA (distância média ao Sol).",
+"Eleve ao cubo: calcule a³.",
+"Tire a raiz quadrada: T = √(a³).",
+"Exemplo: para Marte, a = 1,52 UA → a³ = 3,51 → T = √3,51 ≈ 1,88 anos."
+],
+"dadosLabel": "Fórmulas e valores",
+"dados": [
+[
+"3ª Lei de Kepler",
+"T² = a³ (anos, UA)"
+],
+[
+"Excentricidade da órbita da Terra",
+"~0,017 (quase circular)"
+],
+[
+"Planeta mais excêntrico",
+"Mercúrio (e ≈ 0,206)"
+],
+[
+"Período de Marte",
+"~1,88 ano terrestre"
+]
+],
+"flash": [
+[
+"Onde fica o Sol na órbita elíptica?",
+"Em um dos focos da elipse (1ª Lei de Kepler)."
+],
+[
+"Quando um planeta se move mais rápido?",
+"No periélio, o ponto mais próximo do Sol (2ª Lei)."
+],
+[
+"Enuncie a 3ª Lei de Kepler.",
+"O quadrado do período é proporcional ao cubo do semieixo maior: T² = a³."
+],
+[
+"O que é excentricidade igual a zero?",
+"Uma órbita perfeitamente circular."
+]
+]
+},
+{
+"n": "4",
+"titulo": "Gravitação Universal de Newton",
+"frase": "É a mesma força que faz a maçã cair que mantém os planetas em órbita: a gravidade, proporcional às massas e inversa ao quadrado da distância.",
+"analogia": "Imagine girar uma pedra amarrada num barbante: o barbante puxa a pedra para o centro e a impede de sair reta. A gravidade é o 'barbante invisível' que puxa o planeta para o Sol, curvando sua trajetória numa órbita.",
+"conceitos": [
+"Lei da Gravitação Universal: F = G·(m₁·m₂)/r², onde G = 6,674×10⁻¹¹ N·m²/kg² é a constante gravitacional.",
+"A força é atrativa, proporcional ao produto das massas e inversamente proporcional ao quadrado da distância entre os centros.",
+"Newton demonstrou que as Leis de Kepler decorrem da gravitação; a órbita é uma 'queda' contínua em que o planeta cai em direção ao Sol mas erra o alvo.",
+"Velocidade orbital: v = √(G·M/r). Quanto mais próximo do corpo central, maior a velocidade necessária para manter a órbita."
+],
+"passos": [
+"Identifique as duas massas (m₁, m₂) e a distância r entre seus centros.",
+"Multiplique as massas: m₁·m₂.",
+"Divida pelo quadrado da distância: r².",
+"Multiplique por G (6,674×10⁻¹¹): F = G·m₁·m₂/r².",
+"Para dobrar a distância, a força cai a 1/4 (lei do inverso do quadrado)."
+],
+"dadosLabel": "Constantes e relações",
+"dados": [
+[
+"Constante G",
+"6,674×10⁻¹¹ N·m²/kg²"
+],
+[
+"Lei da força",
+"F = G·m₁·m₂/r²"
+],
+[
+"Dobrar r",
+"força cai a 1/4"
+],
+[
+"Velocidade orbital",
+"v = √(G·M/r)"
+]
+],
+"flash": [
+[
+"Escreva a Lei da Gravitação Universal.",
+"F = G·(m₁·m₂)/r²."
+],
+[
+"Se a distância dobra, o que acontece com a força gravitacional?",
+"Cai para um quarto (1/4) do valor original."
+],
+[
+"Qual o valor da constante gravitacional G?",
+"6,674×10⁻¹¹ N·m²/kg²."
+],
+[
+"Por que um planeta não cai no Sol?",
+"Ele 'cai' continuamente, mas sua velocidade tangencial faz a trajetória curvar em órbita."
+]
+]
+}
+]
+},
+{
+"id": "corpos-menores",
+"nome": "Corpos Menores e Fronteiras do Sistema",
+"aulas": [
+{
+"n": "5",
+"titulo": "Asteroides, Cometas e Meteoros",
+"frase": "Entre e além dos planetas vagueiam restos da formação do Sistema Solar: rochas do cinturão de asteroides e gelos que viram cometas ao se aproximarem do Sol.",
+"analogia": "Cometas são como bolas de neve sujas: enquanto ficam no freezer (longe do Sol) permanecem intactas; ao chegar perto do calor, começam a derreter e soltar um rastro de vapor — a cauda.",
+"conceitos": [
+"Cinturão de asteroides: entre Marte e Júpiter (~2,2 a 3,2 UA); Ceres, o maior objeto, é classificado como planeta anão.",
+"Cometas: núcleos de gelo e poeira; ao se aproximar do Sol formam a coma e duas caudas (de gás/íons e de poeira), sempre apontando para longe do Sol pelo vento solar.",
+"Meteoroide (rocha no espaço) → meteoro (o risco luminoso na atmosfera, 'estrela cadente') → meteorito (o que cai no solo).",
+"Nuvem de Oort e Cinturão de Kuiper são os reservatórios de cometas de longo e curto período, respectivamente."
+],
+"dadosLabel": "Onde ficam e o que são",
+"dados": [
+[
+"Cinturão de asteroides",
+"entre Marte e Júpiter (~2,2-3,2 UA)"
+],
+[
+"Maior asteroide/planeta anão do cinturão",
+"Ceres"
+],
+[
+"Cauda do cometa",
+"aponta para longe do Sol"
+],
+[
+"Cometa de curto período famoso",
+"Halley (~76 anos)"
+]
+],
+"flash": [
+[
+"Onde está o cinturão de asteroides?",
+"Entre as órbitas de Marte e Júpiter."
+],
+[
+"Por que a cauda do cometa aponta para longe do Sol?",
+"Porque o vento solar e a pressão de radiação empurram o gás e a poeira."
+],
+[
+"Diferença entre meteoro e meteorito?",
+"Meteoro é o rastro luminoso na atmosfera; meteorito é o fragmento que atinge o solo."
+],
+[
+"Qual o período do cometa Halley?",
+"Cerca de 76 anos."
+]
+]
+},
+{
+"n": "6",
+"titulo": "Planetas Anões e a Redefinição de Plutão",
+"frase": "Plutão foi reclassificado em 2006 porque não 'limpou' a vizinhança de sua órbita, virando o protótipo dos planetas anões.",
+"analogia": "É como a diferença entre um faxineiro que limpou todo o cômodo (planeta) e alguém que arrumou só o próprio canto mas dividiu o espaço com muita bagunça em volta (planeta anão): Plutão nunca dominou sua região.",
+"conceitos": [
+"Definição da IAU (2006): um planeta (1) orbita o Sol, (2) tem massa suficiente para ser aproximadamente esférico e (3) 'limpou' a vizinhança de sua órbita.",
+"Plutão falha no critério 3: divide sua região com muitos objetos do Cinturão de Kuiper, sendo reclassificado como planeta anão.",
+"Planetas anões reconhecidos: Ceres, Plutão, Éris, Haumea e Makemake. Éris tem massa comparável à de Plutão.",
+"Objetos transnetunianos (TNOs): corpos além de Netuno no Cinturão de Kuiper; Plutão é um deles, com órbita inclinada e excêntrica que cruza a de Netuno."
+],
+"passos": [
+"Verifique se o corpo orbita o Sol (não é lua).",
+"Verifique se tem gravidade suficiente para ter forma quase esférica (equilíbrio hidrostático).",
+"Verifique se dominou gravitacionalmente e 'limpou' sua órbita de outros corpos.",
+"Se cumpre 1 e 2 mas não 3 → é planeta anão (caso de Plutão)."
+],
+"dadosLabel": "Fatos da reclassificação",
+"dados": [
+[
+"Ano da reclassificação de Plutão",
+"2006 (IAU)"
+],
+[
+"Nº de critérios para ser planeta",
+"3"
+],
+[
+"Critério que Plutão falha",
+"limpar a vizinhança da órbita"
+],
+[
+"Planetas anões reconhecidos",
+"Ceres, Plutão, Éris, Haumea, Makemake"
+]
+],
+"flash": [
+[
+"Por que Plutão deixou de ser planeta?",
+"Não limpou a vizinhança de sua órbita (critério 3 da IAU)."
+],
+[
+"Quais são os três critérios de planeta da IAU?",
+"Orbitar o Sol, ter forma quase esférica e limpar a vizinhança da órbita."
+],
+[
+"Cite três planetas anões.",
+"Ceres, Plutão e Éris (também Haumea e Makemake)."
+],
+[
+"O que é um objeto transnetuniano?",
+"Um corpo que orbita o Sol além de Netuno, no Cinturão de Kuiper."
+]
+]
+}
+]
+}
+],
+"desc": "Matéria de demonstração sobre o Sistema Solar: formação, leis de Kepler e Newton, e corpos menores — nível vestibular.",
+"dia": "Exemplo · ciências exatas / astronomia",
+"emoji": "🪐",
+"id": "astronomia",
+"tema": "rosa",
+"titulo": "Astronomia — Sistema Solar"
+},
+{
+"id": "estruturas-dados",
+"emoji": "🧮",
+"titulo": "Estruturas de Dados e Complexidade (Big-O)",
+"dia": "Exemplo · computação",
+"tema": "azul",
+"desc": "Da notação assintótica às estruturas fundamentais: aprenda a medir o custo de um algoritmo e a escolher a estrutura certa para cada problema.",
+"blocos": [
+{
+"id": "bloco-complexidade",
+"nome": "Fundamentos de Complexidade",
+"aulas": [
+{
+"n": "1",
+"titulo": "Notação Big-O e Análise Assintótica",
+"frase": "Big-O não mede o tempo em segundos: mede como o custo cresce quando a entrada cresce.",
+"analogia": "Pense em receitas de cozinha. Ferver 1 ovo ou 10 ovos leva quase o mesmo tempo (a água já está quente) — isso é O(1). Mas descascar os ovos um por um: 10 ovos dão 10x mais trabalho que 1 — isso é O(n). Big-O ignora se você é rápido ou lento descascando; só olha como o trabalho escala com a quantidade de ovos.",
+"conceitos": [
+"Big-O (O) descreve o LIMITE SUPERIOR assintótico: no pior caso, o custo não cresce mais rápido que a função indicada.",
+"Big-Omega (Ω) é o limite inferior (melhor caso) e Big-Theta (Θ) é o limite justo, quando O e Ω coincidem.",
+"Na análise assintótica descartam-se constantes e termos de menor ordem: 3n² + 5n + 100 é O(n²).",
+"Compara-se pela ordem de crescimento, não por valores fixos: para n grande, O(n) sempre supera O(log n), que sempre supera O(1).",
+"Complexidade de tempo mede operações; complexidade de espaço mede memória extra usada além da entrada."
+],
+"passos": [
+"Identifique a operação dominante (a que mais se repete) e o tamanho da entrada n.",
+"Conte quantas vezes essa operação executa em função de n (ex.: laço simples = n vezes).",
+"Laços aninhados multiplicam: dois laços de n aninhados = n × n = n².",
+"Descarte constantes multiplicativas: 5n vira O(n).",
+"Descarte termos de menor ordem: n² + n vira O(n²), mantendo só o termo dominante."
+],
+"dadosLabel": "Ordens de crescimento que caem na prova",
+"dados": [
+[
+"Constante",
+"O(1) — acesso a array por índice"
+],
+[
+"Logarítmica",
+"O(log n) — busca binária"
+],
+[
+"Linear",
+"O(n) — percorrer uma lista"
+],
+[
+"Linearítmica",
+"O(n log n) — Merge Sort, Heapsort"
+],
+[
+"Quadrática",
+"O(n²) — Bubble Sort, dois laços aninhados"
+],
+[
+"Exponencial / Fatorial",
+"O(2ⁿ) / O(n!) — força bruta, caixeiro-viajante"
+]
+],
+"flash": [
+[
+"O que Big-O realmente mede?",
+"A taxa de crescimento do custo no pior caso conforme a entrada n aumenta — não o tempo absoluto em segundos."
+],
+[
+"Qual a diferença entre O, Ω e Θ?",
+"O é limite superior (pior caso), Ω é limite inferior (melhor caso) e Θ é limite justo, quando O e Ω são iguais."
+],
+[
+"Simplifique 4n³ + 200n² + 50 em Big-O.",
+"O(n³): mantém-se apenas o termo dominante e descartam-se constantes e termos menores."
+],
+[
+"Ordene de mais eficiente para menos: O(n²), O(1), O(n log n), O(log n).",
+"O(1) < O(log n) < O(n log n) < O(n²)."
+]
+]
+},
+{
+"n": "2",
+"titulo": "Pior, Melhor e Caso Médio + Complexidade Amortizada",
+"frase": "O mesmo algoritmo pode ser rápido num dia de sorte e lento no pior cenário — bons projetistas planejam para o pior.",
+"analogia": "Procurar um nome na lista telefônica: no melhor caso ele é a primeira pessoa (O(1)); no pior, é a última que você checa (O(n)) se for busca sequencial. A complexidade amortizada é como uma assinatura de academia: um mês você paga a matrícula cara, mas diluída ao longo do ano o custo médio por visita fica baixo.",
+"conceitos": [
+"Melhor caso: menor número de operações possível para alguma entrada (ex.: elemento buscado logo na 1ª posição).",
+"Pior caso: maior número de operações; é o que Big-O geralmente reporta por ser a garantia de segurança.",
+"Caso médio: valor esperado sobre uma distribuição de entradas; para Quicksort é O(n log n), embora o pior caso seja O(n²).",
+"Análise amortizada: custo médio por operação numa SEQUÊNCIA de operações, mesmo que uma delas seja cara.",
+"Um ArrayList/vector dinâmico tem inserção amortizada O(1): dobrar o array custa O(n) raramente, mas dilui-se sobre muitas inserções baratas."
+],
+"passos": [
+"Defina qual entrada gera o menor custo (melhor caso) e qual gera o maior (pior caso).",
+"Para o caso médio, assuma uma distribuição de entradas e calcule o custo esperado.",
+"Para amortização, some o custo total de uma sequência de m operações.",
+"Divida o custo total pela quantidade m de operações para obter o custo amortizado por operação."
+],
+"dadosLabel": "Casos de algoritmos clássicos",
+"dados": [
+[
+"Quicksort — caso médio",
+"O(n log n)"
+],
+[
+"Quicksort — pior caso",
+"O(n²) com pivô ruim em lista já ordenada"
+],
+[
+"Busca linear — melhor / pior",
+"O(1) / O(n)"
+],
+[
+"Inserção em array dinâmico",
+"O(1) amortizado, O(n) pontual"
+]
+],
+"flash": [
+[
+"Por que Big-O geralmente reporta o pior caso?",
+"Porque oferece uma garantia: o algoritmo nunca será mais lento que isso, independentemente da entrada."
+],
+[
+"Qual o caso médio e o pior caso do Quicksort?",
+"Caso médio O(n log n); pior caso O(n²), que ocorre com escolha ruim de pivô (ex.: lista já ordenada)."
+],
+[
+"O que significa inserção 'O(1) amortizado' num array dinâmico?",
+"Embora dobrar a capacidade custe O(n) ocasionalmente, o custo médio por inserção ao longo de muitas operações é constante."
+],
+[
+"Melhor caso da busca binária?",
+"O(1) — quando o elemento procurado está exatamente no meio na primeira comparação."
+]
+]
+}
+]
+},
+{
+"id": "bloco-lineares",
+"nome": "Estruturas Lineares",
+"aulas": [
+{
+"n": "3",
+"titulo": "Arrays vs. Listas Encadeadas",
+"frase": "Array é rápido para acessar mas caro para inserir no meio; lista encadeada é o oposto.",
+"analogia": "Um array é como uma fileira de armários numerados: você vai direto ao armário 42 (acesso instantâneo), mas para inserir um armário novo no meio precisa arrastar todos os outros. Uma lista encadeada é uma caça ao tesouro: cada pista aponta para a próxima; inserir uma pista nova é fácil (só reescreve dois bilhetes), mas achar a 42ª pista exige seguir 41 antes.",
+"conceitos": [
+"Array armazena elementos em memória contígua; o acesso por índice é O(1) via aritmética de ponteiros (base + índice × tamanho).",
+"Inserir/remover no meio de um array é O(n) porque exige deslocar os elementos seguintes.",
+"Lista encadeada guarda nós com dado + ponteiro para o próximo; a memória não é contígua.",
+"Acesso ao i-ésimo elemento numa lista encadeada é O(n): é preciso percorrer desde a cabeça.",
+"Inserir/remover num nó conhecido da lista é O(1): basta religar ponteiros, sem deslocar nada."
+],
+"dadosLabel": "Custos: Array vs. Lista Encadeada",
+"dados": [
+[
+"Acesso por índice",
+"Array O(1) · Lista O(n)"
+],
+[
+"Busca por valor",
+"Array O(n) · Lista O(n)"
+],
+[
+"Inserção no início",
+"Array O(n) · Lista O(1)"
+],
+[
+"Inserção no fim",
+"Array O(1) amortizado · Lista O(1) com ponteiro para cauda"
+]
+],
+"flash": [
+[
+"Por que o acesso por índice num array é O(1)?",
+"Porque os elementos são contíguos na memória; o endereço é calculado por base + índice × tamanho do elemento."
+],
+[
+"Qual estrutura escolher para muitas inserções/remoções no início?",
+"Lista encadeada: inserir/remover na cabeça é O(1), enquanto no array é O(n) por causa do deslocamento."
+],
+[
+"Por que buscar o i-ésimo elemento numa lista encadeada é O(n)?",
+"Porque não há acesso direto: é necessário seguir os ponteiros desde a cabeça até o i-ésimo nó."
+],
+[
+"Qual a desvantagem de memória da lista encadeada?",
+"Cada nó gasta memória extra com o(s) ponteiro(s), além do dado, e perde a localidade de cache do array."
+]
+]
+},
+{
+"n": "4",
+"titulo": "Pilhas (Stack) e Filas (Queue)",
+"frase": "Pilha é LIFO — o último a entrar é o primeiro a sair; fila é FIFO — quem chega primeiro sai primeiro.",
+"analogia": "A pilha é uma pilha de pratos: você coloca e tira sempre do topo (LIFO). A fila é a fila do caixa do supermercado: quem chegou primeiro é atendido primeiro (FIFO). O botão 'desfazer' (Ctrl+Z) usa uma pilha; a fila de impressão usa uma queue.",
+"conceitos": [
+"Pilha (Stack) segue LIFO (Last In, First Out); operações push (empilhar) e pop (desempilhar) são O(1).",
+"Fila (Queue) segue FIFO (First In, First Out); operações enqueue (inserir no fim) e dequeue (remover do início) são O(1).",
+"Pilhas são usadas na recursão (pilha de chamadas), avaliação de expressões e no algoritmo DFS (busca em profundidade).",
+"Filas são usadas em escalonamento de tarefas, buffers e no algoritmo BFS (busca em largura).",
+"Deque (double-ended queue) permite inserção/remoção em ambas as extremidades em O(1)."
+],
+"passos": [
+"Para converter recursão em iteração, simule a pilha de chamadas com uma Stack explícita.",
+"Empilhe (push) o estado inicial do problema.",
+"Enquanto a pilha não estiver vazia, faça pop do topo e processe-o.",
+"Empilhe os novos subestados gerados e repita até a pilha esvaziar."
+],
+"dadosLabel": "Operações e complexidades",
+"dados": [
+[
+"Stack — push / pop",
+"O(1) / O(1)"
+],
+[
+"Queue — enqueue / dequeue",
+"O(1) / O(1)"
+],
+[
+"Pilha usada por",
+"DFS, recursão, undo, parsing"
+],
+[
+"Fila usada por",
+"BFS, escalonamento, buffers"
+]
+],
+"flash": [
+[
+"Qual a diferença entre LIFO e FIFO?",
+"LIFO (pilha): o último a entrar sai primeiro. FIFO (fila): o primeiro a entrar sai primeiro."
+],
+[
+"Quais são as operações fundamentais de uma pilha e seu custo?",
+"push (empilhar) e pop (desempilhar), ambas O(1)."
+],
+[
+"Qual estrutura está por trás da busca em largura (BFS)?",
+"A fila (queue), que garante processar os nós na ordem em que foram descobertos."
+],
+[
+"Que estrutura implementa o Ctrl+Z (desfazer)?",
+"Uma pilha: cada ação é empilhada e desfeita na ordem inversa (LIFO)."
+]
+]
+}
+]
+},
+{
+"id": "bloco-nao-lineares",
+"nome": "Estruturas Não Lineares",
+"aulas": [
+{
+"n": "5",
+"titulo": "Tabelas Hash (Hash Tables)",
+"frase": "A tabela hash troca memória por velocidade: busca, inserção e remoção em O(1) no caso médio.",
+"analogia": "É como o guarda-volumes de um clube com fichas numeradas. Você entrega sua mochila, recebe a ficha 27 e, quando volta, vai direto ao gancho 27 sem procurar mochila por mochila. A função hash é o atendente que decide qual gancho cada mochila recebe. Colisão é quando duas mochilas caem no mesmo gancho — aí penduram-se juntas e você precisa olhar as duas.",
+"conceitos": [
+"Uma função hash converte a chave num índice de array; idealmente distribui as chaves uniformemente.",
+"Busca, inserção e remoção são O(1) no caso médio, mas O(n) no pior caso (todas as chaves colidindo).",
+"Colisão ocorre quando duas chaves geram o mesmo índice; resolve-se por encadeamento (listas nos buckets) ou endereçamento aberto (sondagem).",
+"Fator de carga α = n / m (elementos / buckets); quando α passa de ~0,7 costuma-se redimensionar (rehash).",
+"Tabelas hash não mantêm ordem dos elementos — para percorrer em ordem, use árvores balanceadas."
+],
+"passos": [
+"Aplique a função hash à chave para obter um número (ex.: hash da string).",
+"Reduza esse número ao intervalo de buckets com módulo: índice = hash(chave) mod m.",
+"Se o bucket estiver vazio, insira; se houver colisão, trate-a (encadeamento ou sondagem).",
+"Monitore o fator de carga; ao ultrapassar o limiar, dobre m e refaça o hash (rehash) de todos os elementos."
+],
+"dadosLabel": "Números da tabela hash",
+"dados": [
+[
+"Busca/inserção/remoção — caso médio",
+"O(1)"
+],
+[
+"Busca/inserção/remoção — pior caso",
+"O(n)"
+],
+[
+"Fator de carga limiar típico",
+"α ≈ 0,7 antes do rehash"
+],
+[
+"Resolução de colisão",
+"Encadeamento ou endereçamento aberto"
+]
+],
+"flash": [
+[
+"Qual a complexidade média de busca numa tabela hash e por quê?",
+"O(1): a função hash leva direto ao bucket, sem percorrer a coleção."
+],
+[
+"O que é uma colisão e como resolvê-la?",
+"Duas chaves gerando o mesmo índice; resolve-se por encadeamento (lista no bucket) ou endereçamento aberto (sondagem por outro slot)."
+],
+[
+"O que é o fator de carga (α)?",
+"A razão α = n/m entre número de elementos e número de buckets; ao ultrapassar ~0,7 faz-se rehash para manter O(1)."
+],
+[
+"Quando NÃO usar tabela hash?",
+"Quando é preciso manter os elementos ordenados ou fazer consultas por intervalo — nesse caso usa-se árvore balanceada."
+]
+]
+},
+{
+"n": "6",
+"titulo": "Árvores Binárias de Busca (BST) e Balanceamento",
+"frase": "Uma árvore de busca binária transforma busca em O(log n) — desde que se mantenha balanceada.",
+"analogia": "É como adivinhar um número entre 1 e 1000 perguntando 'é maior ou menor?'. A cada pergunta você elimina metade das opções — em ~10 perguntas acha qualquer número (log₂ 1000 ≈ 10). Mas se as perguntas forem sempre 'é maior?', você degenera numa lista e volta a perguntar uma por uma: é a árvore desbalanceada virando O(n).",
+"conceitos": [
+"Numa BST, para cada nó, todos os valores da subárvore esquerda são menores e os da direita são maiores.",
+"Busca, inserção e remoção são O(log n) numa árvore balanceada, mas O(n) se ela degenerar em 'lista' (encadeada).",
+"A altura de uma árvore balanceada com n nós é O(log n); a busca visita no máximo essa quantidade de níveis.",
+"Árvores AVL e Rubro-Negras (Red-Black) rebalanceiam-se via rotações, garantindo altura O(log n).",
+"O percurso em-ordem (in-order) de uma BST visita os nós em ordem crescente dos valores."
+],
+"passos": [
+"Comece na raiz e compare a chave buscada com o valor do nó.",
+"Se for igual, encontrou; se for menor, desça para a subárvore esquerda; se maior, para a direita.",
+"Repita até encontrar o valor ou chegar a um ponteiro nulo (elemento ausente).",
+"Após inserções/remoções, verifique o fator de balanceamento; se violado, aplique rotações (AVL/Red-Black) para restaurar a altura O(log n)."
+],
+"dadosLabel": "Números das árvores de busca",
+"dados": [
+[
+"Busca — árvore balanceada",
+"O(log n)"
+],
+[
+"Busca — árvore degenerada",
+"O(n)"
+],
+[
+"Altura balanceada com n nós",
+"O(log n)"
+],
+[
+"Percurso in-order",
+"Retorna valores em ordem crescente, O(n)"
+]
+],
+"flash": [
+[
+"Qual a propriedade fundamental de uma BST?",
+"Para todo nó: valores à esquerda são menores e valores à direita são maiores que o nó."
+],
+[
+"Por que a busca numa BST balanceada é O(log n)?",
+"Porque cada comparação elimina metade dos nós restantes, percorrendo apenas a altura O(log n) da árvore."
+],
+[
+"O que acontece se uma BST ficar desbalanceada?",
+"Ela degenera em algo parecido com uma lista encadeada e a busca cai para O(n)."
+],
+[
+"O que garantem árvores AVL e Rubro-Negras?",
+"Rebalanceamento automático por rotações, mantendo a altura em O(log n) e as operações eficientes."
+]
+]
+}
+]
+}
+]
+},
+{
+"blocos": [
+{
+"id": "juros",
+"nome": "Juros: Simples e Compostos",
+"aulas": [
+{
+"n": "1",
+"titulo": "Juros Simples",
+"frase": "No juro simples, só o capital inicial rende — o tempo é multiplicador, não potência.",
+"analogia": "É como um cofre que solta a mesma quantia fixa de moedas todo mês, sempre calculada sobre o valor que você depositou no começo, sem nunca considerar as moedas que já saíram.",
+"conceitos": [
+"Juro incide sempre sobre o capital inicial (principal), nunca sobre juros acumulados",
+"Fórmula do juro: J = C · i · t, onde C é o capital, i a taxa unitária e t o tempo",
+"Montante: M = C · (1 + i · t) — crescimento linear (função do 1º grau)",
+"Taxa e tempo devem estar na MESMA unidade (mês com mês, ano com ano)",
+"O gráfico do montante é uma reta"
+],
+"passos": [
+"Converta a taxa percentual para forma unitária (ex.: 5% → 0,05)",
+"Verifique se taxa e tempo estão na mesma unidade; se não, converta",
+"Calcule o juro com J = C · i · t",
+"Some ao capital para obter o montante: M = C + J",
+"Confira a coerência (M deve ser sempre maior que C para i, t positivos)"
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Capital R$ 1.000, i=2%/mês, t=6 meses",
+"J = 1000·0,02·6 = R$ 120"
+],
+[
+"Montante do exemplo acima",
+"M = R$ 1.120"
+],
+[
+"Crescimento",
+"Linear (função afim)"
+],
+[
+"Base de cálculo",
+"Sempre o capital inicial"
+]
+],
+"flash": [
+[
+"Sobre o que incidem os juros simples?",
+"Sempre sobre o capital inicial, nunca sobre juros já gerados"
+],
+[
+"Qual a fórmula do montante simples?",
+"M = C · (1 + i · t)"
+],
+[
+"O crescimento do juro simples é qual tipo de função?",
+"Função do 1º grau (linear / reta)"
+],
+[
+"Se i=3% ao mês e t=4 meses, qual o fator de montante?",
+"1 + 0,03·4 = 1,12"
+]
+]
+},
+{
+"n": "2",
+"titulo": "Juros Compostos",
+"frase": "No juro composto, o juro vira capital e passa a render também — é juro sobre juro.",
+"analogia": "É uma bola de neve rolando ladeira abaixo: a cada volta ela incorpora a neve acumulada e cresce cada vez mais rápido, não em ritmo constante.",
+"conceitos": [
+"O juro de cada período é incorporado ao capital para o cálculo do período seguinte (capitalização)",
+"Fórmula do montante: M = C · (1 + i)^t — crescimento exponencial",
+"O juro total: J = M − C = C · [(1 + i)^t − 1]",
+"É o regime usado em quase todo o mercado financeiro (empréstimos, poupança, financiamentos)",
+"Para o mesmo i e t > 1, o montante composto SEMPRE supera o simples"
+],
+"passos": [
+"Converta a taxa para forma unitária (ex.: 2% → 0,02)",
+"Garanta que taxa e tempo estejam na mesma unidade de período",
+"Calcule o fator (1 + i)^t",
+"Multiplique pelo capital: M = C · (1 + i)^t",
+"Para achar só o juro, subtraia o capital: J = M − C"
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Capital R$ 1.000, i=2%/mês, t=6 meses",
+"M = 1000·(1,02)^6 ≈ R$ 1.126,16"
+],
+[
+"Juro do exemplo",
+"≈ R$ 126,16 (vs R$ 120 no simples)"
+],
+[
+"Crescimento",
+"Exponencial (potência)"
+],
+[
+"Regime dominante no mercado",
+"Juros compostos"
+]
+],
+"flash": [
+[
+"Qual a fórmula do montante composto?",
+"M = C · (1 + i)^t"
+],
+[
+"Qual a diferença essencial para o juro simples?",
+"O juro é incorporado ao capital e passa a render (juro sobre juro)"
+],
+[
+"Para t > 1 período, qual montante é maior: simples ou composto?",
+"O composto, sempre"
+],
+[
+"Como o montante composto cresce ao longo do tempo?",
+"Exponencialmente"
+]
+]
+},
+{
+"n": "3",
+"titulo": "Taxas Equivalentes e Taxa Real",
+"frase": "Taxas nominais mentem; só as equivalentes e a taxa real dizem quanto você ganha de verdade.",
+"analogia": "É como comparar velocidades em km/h e milhas/h: sem converter para a mesma unidade, um número maior pode significar um ritmo menor.",
+"conceitos": [
+"Taxas equivalentes: rendem o mesmo montante no mesmo prazo, em regime composto: (1+i_a) = (1+i_m)^12",
+"Taxa nominal x efetiva: nominal de 12% a.a. capitalizada mensalmente vira efetiva de (1,01)^12 − 1 ≈ 12,68% a.a.",
+"Taxa real desconta a inflação pela fórmula de Fisher: (1+i_real) = (1+i_nominal)/(1+inflação)",
+"Taxa aparente é a nominal; se a inflação supera o juro nominal, a taxa real fica negativa",
+"Nunca se somam ou dividem taxas compostas linearmente — usa-se potenciação"
+],
+"passos": [
+"Identifique o regime (quase sempre composto) e a unidade das taxas",
+"Para equivalência, iguale os fatores de capitalização: (1+i_maior) = (1+i_menor)^n",
+"Isole a taxa desejada com raiz ou potência",
+"Para taxa real, aplique Fisher: i_real = (1+i_nom)/(1+infl) − 1",
+"Converta o resultado de volta para percentual"
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"1% ao mês em taxa anual equivalente",
+"(1,01)^12 − 1 ≈ 12,68% a.a."
+],
+[
+"Nominal 12% a.a. capital. mensal → efetiva",
+"≈ 12,68% a.a."
+],
+[
+"Nominal 10%, inflação 6% → taxa real",
+"(1,10/1,06) − 1 ≈ 3,77%"
+],
+[
+"Regra de ouro",
+"Taxa composta não se soma linearmente"
+]
+],
+"flash": [
+[
+"Como calcular a taxa real (Fisher)?",
+"(1+i_real) = (1+i_nominal)/(1+inflação)"
+],
+[
+"1% a.m. equivale a quanto ao ano?",
+"(1,01)^12 − 1 ≈ 12,68%"
+],
+[
+"Qual a diferença entre taxa nominal e efetiva?",
+"A nominal ignora a capitalização no período; a efetiva incorpora"
+],
+[
+"Quando a taxa real é negativa?",
+"Quando a inflação supera o juro nominal"
+]
+]
+}
+]
+},
+{
+"id": "aplicacoes",
+"nome": "Aplicações Financeiras",
+"aulas": [
+{
+"n": "4",
+"titulo": "Descontos: Simples e Composto",
+"frase": "Antecipar dinheiro tem preço — o desconto é o juro cobrado por receber antes do vencimento.",
+"analogia": "É como vender um ingresso de show marcado para daqui a três meses: como você recebe agora e não depois, aceita um valor abaixo do preço de face.",
+"conceitos": [
+"Valor nominal (N): valor de face no vencimento; valor atual/líquido (A): o que se recebe hoje",
+"Desconto comercial (por fora): D = N · i · t — incide sobre o valor NOMINAL",
+"Desconto racional (por dentro): D = N · i · t / (1 + i · t) — incide sobre o valor ATUAL",
+"O desconto comercial é sempre maior que o racional para os mesmos parâmetros",
+"Usado em antecipação de duplicatas, cheques e títulos (operações de desconto bancário)"
+],
+"passos": [
+"Identifique valor nominal N, taxa i e prazo t até o vencimento",
+"Escolha o tipo de desconto (comercial/por fora é o mais comum no Brasil)",
+"Comercial: calcule D = N · i · t",
+"Obtenha o valor atual: A = N − D",
+"Para o racional, use A = N / (1 + i · t) e D = N − A"
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Título N=R$ 10.000, i=3%/mês, t=2 meses (comercial)",
+"D = 10000·0,03·2 = R$ 600"
+],
+[
+"Valor atual (comercial)",
+"A = R$ 9.400"
+],
+[
+"Desconto racional mesmos dados",
+"D = 600/1,06 ≈ R$ 566,04"
+],
+[
+"Qual desconto é maior?",
+"O comercial (por fora)"
+]
+],
+"flash": [
+[
+"Sobre qual valor incide o desconto comercial?",
+"Sobre o valor nominal (de face)"
+],
+[
+"Sobre qual valor incide o desconto racional?",
+"Sobre o valor atual (líquido)"
+],
+[
+"Qual desconto é maior para mesmos dados?",
+"O comercial (por fora)"
+],
+[
+"Fórmula do desconto comercial simples?",
+"D = N · i · t"
+]
+]
+},
+{
+"n": "5",
+"titulo": "Amortização: SAC e Tabela Price",
+"frase": "SAC começa caro e alivia; Price cobra parcela fixa mas paga mais juros no total.",
+"analogia": "SAC é como pagar mais no início de um parcelamento para quitar rápido; Price é como uma assinatura de valor fixo que parece confortável mas custa mais no fim.",
+"conceitos": [
+"Amortização é a parte da parcela que efetivamente abate o saldo devedor (parcela = amortização + juros)",
+"SAC (Sistema de Amortização Constante): amortização fixa; parcelas DECRESCENTES; juros caem a cada mês",
+"Price (Sistema Francês): PARCELA fixa; amortização cresce e juros decrescem ao longo do tempo",
+"Parcela Price: PMT = PV · i / [1 − (1+i)^(−n)]",
+"No SAC paga-se menos juros no total; na Price a parcela inicial é menor — trade-off clássico"
+],
+"passos": [
+"Defina o valor financiado (PV), a taxa i e o número de parcelas n",
+"SAC: amortização = PV / n; some os juros do saldo (saldo · i) para cada parcela",
+"SAC: recalcule o saldo devedor subtraindo a amortização a cada mês",
+"Price: calcule a parcela fixa com PMT = PV·i / [1 − (1+i)^(−n)]",
+"Price: em cada mês, juro = saldo · i, amortização = PMT − juro, atualize o saldo"
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"SAC: dívida R$ 12.000 em 12x",
+"Amortização fixa = R$ 1.000/mês"
+],
+[
+"SAC",
+"Parcelas decrescentes, menos juros total"
+],
+[
+"Price",
+"Parcela fixa, mais juros total"
+],
+[
+"Parcela Price",
+"PMT = PV·i/[1−(1+i)^(−n)]"
+]
+],
+"flash": [
+[
+"No SAC, o que é constante?",
+"A amortização; as parcelas são decrescentes"
+],
+[
+"Na Tabela Price, o que é constante?",
+"A parcela (PMT); a amortização cresce e o juro cai"
+],
+[
+"Qual sistema paga menos juros no total?",
+"O SAC"
+],
+[
+"Componentes de uma parcela?",
+"Amortização + juros"
+]
+]
+}
+]
+},
+{
+"id": "valor-dinheiro",
+"nome": "Valor do Dinheiro no Tempo",
+"aulas": [
+{
+"n": "6",
+"titulo": "Valor Presente e Valor Futuro",
+"frase": "R$ 1 hoje vale mais que R$ 1 amanhã — trazer ao presente é descontar; levar ao futuro é capitalizar.",
+"analogia": "É como fotografar o mesmo objeto de perto e de longe: o valor futuro é o objeto visto ampliado pela taxa; o valor presente é ele reduzido pelo mesmo fator.",
+"conceitos": [
+"Valor do dinheiro no tempo: quantias em datas diferentes só se comparam trazidas à mesma data",
+"Valor futuro: VF = VP · (1 + i)^n (capitalização)",
+"Valor presente: VP = VF / (1 + i)^n (desconto)",
+"A taxa i funciona como custo de oportunidade / taxa de desconto do investidor",
+"Fluxos em datas distintas nunca se somam diretamente — precisam ser levados à mesma data-foco"
+],
+"passos": [
+"Desenhe a linha do tempo com todos os fluxos e suas datas",
+"Escolha uma data-foco (normalmente hoje = presente)",
+"Para cada fluxo, aplique VP = VF/(1+i)^n para trazer ao presente",
+"Some os valores já na mesma data",
+"Interprete: só então os montantes são comparáveis"
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"VF de R$ 1.000 em 3 anos a 10% a.a.",
+"1000·(1,10)^3 = R$ 1.331"
+],
+[
+"VP de R$ 1.331 daqui a 3 anos a 10%",
+"R$ 1.000"
+],
+[
+"Fator de desconto",
+"1/(1+i)^n"
+],
+[
+"Regra",
+"Fluxos só se somam na mesma data"
+]
+],
+"flash": [
+[
+"Como calcular o valor presente?",
+"VP = VF / (1 + i)^n"
+],
+[
+"Como calcular o valor futuro?",
+"VF = VP · (1 + i)^n"
+],
+[
+"Por que R$ 1 hoje vale mais que R$ 1 amanhã?",
+"Pelo custo de oportunidade: hoje pode ser investido e render"
+],
+[
+"Podem-se somar fluxos em datas diferentes?",
+"Não; é preciso trazê-los à mesma data primeiro"
+]
+]
+},
+{
+"n": "7",
+"titulo": "VPL e TIR na Análise de Investimentos",
+"frase": "VPL positivo cria valor; a TIR é a taxa que zera o VPL e define o limite do investimento.",
+"analogia": "O VPL é o lucro real de um negócio já descontado o que você poderia ganhar em outro lugar; a TIR é o ponto de equilíbrio, como o ritmo máximo antes de o projeto deixar de valer a pena.",
+"conceitos": [
+"VPL (Valor Presente Líquido): soma dos fluxos futuros descontados menos o investimento inicial",
+"VPL = −FC0 + Σ FCt/(1+i)^t; decisão: VPL > 0 aceita, VPL < 0 rejeita",
+"TIR (Taxa Interna de Retorno): taxa i que faz o VPL = 0",
+"Critério da TIR: aceita-se o projeto se TIR > taxa mínima de atratividade (TMA)",
+"VPL usa a TMA como taxa de desconto; é o critério mais robusto quando os métodos divergem"
+],
+"passos": [
+"Monte o fluxo de caixa: investimento inicial (negativo) e retornos futuros",
+"Defina a taxa mínima de atratividade (TMA / custo de capital)",
+"Traga cada fluxo ao presente e some para achar o VPL",
+"Decida pelo VPL: aceite se for positivo",
+"Para a TIR, encontre i que zera o VPL e compare com a TMA"
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Critério de aceitação VPL",
+"VPL > 0 → aceita"
+],
+[
+"Definição da TIR",
+"Taxa que zera o VPL"
+],
+[
+"Critério de aceitação TIR",
+"TIR > TMA → aceita"
+],
+[
+"Fórmula VPL",
+"−FC0 + Σ FCt/(1+i)^t"
+]
+],
+"flash": [
+[
+"O que é o VPL?",
+"A soma dos fluxos descontados menos o investimento inicial"
+],
+[
+"Quando aceitar um projeto pelo VPL?",
+"Quando VPL > 0"
+],
+[
+"O que é a TIR?",
+"A taxa de desconto que torna o VPL igual a zero"
+],
+[
+"Quando aceitar pela TIR?",
+"Quando a TIR for maior que a taxa mínima de atratividade (TMA)"
+]
+]
+}
+]
+}
+],
+"desc": "Matéria completa de Matemática Financeira nível vestibular/graduação: juros, aplicações e valor do dinheiro no tempo, com fórmulas, exemplos numéricos e flashcards.",
+"dia": "Exemplo · finanças / matemática aplicada",
+"emoji": "💰",
+"id": "matematica-financeira",
+"tema": "rosa",
+"titulo": "Matemática Financeira"
+},
+{
+"id": "cardiovascular",
+"emoji": "🩺",
+"titulo": "Sistema Cardiovascular",
+"dia": "Exemplo · biologia / saúde",
+"tema": "azul",
+"desc": "Do miócito ao ciclo cardíaco: anatomia do coração, circulação sanguínea, condução elétrica, pressão arterial e regulação. Conteúdo nível vestibular/graduação com fórmulas, valores de referência e mecanismos.",
+"blocos": [
+{
+"id": "anatomia-circulacao",
+"nome": "Anatomia do coração e circulação",
+"aulas": [
+{
+"n": "1",
+"titulo": "O coração como bomba dupla",
+"frase": "O coração não é uma bomba, são duas bombas em série trabalhando em sincronia no mesmo órgão.",
+"analogia": "Pense em dois andares de um prédio com elevadores independentes: o lado direito leva pessoas ao 'setor de oxigenação' (pulmão) e o lado esquerdo distribui todos pela cidade (corpo). O sangue nunca troca de elevador porque o septo é uma parede sólida.",
+"conceitos": [
+"Coração dividido em 4 câmaras: 2 átrios (recebem sangue) e 2 ventrículos (bombeiam sangue).",
+"Lado direito bombeia sangue venoso (pobre em O2) para os pulmões — pequena circulação; lado esquerdo bombeia sangue arterial para o corpo — grande circulação.",
+"Valvas atrioventriculares: tricúspide (direita) e mitral/bicúspide (esquerda), impedem refluxo átrio→ventrículo.",
+"Valvas semilunares: pulmonar e aórtica, impedem refluxo das artérias de volta aos ventrículos.",
+"Miocárdio do ventrículo esquerdo é ~3x mais espesso que o direito, pois vence a resistência da circulação sistêmica."
+],
+"passos": [
+"Sangue venoso chega ao átrio direito pelas veias cavas superior e inferior.",
+"Passa pela valva tricúspide para o ventrículo direito.",
+"É ejetado pela valva pulmonar → artéria pulmonar → pulmões (hematose).",
+"Retorna oxigenado pelas 4 veias pulmonares ao átrio esquerdo.",
+"Passa pela valva mitral para o ventrículo esquerdo.",
+"É ejetado pela valva aórtica → aorta → corpo inteiro."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Número de câmaras",
+"4 (2 átrios + 2 ventrículos)"
+],
+[
+"Veias pulmonares",
+"4 (levam sangue oxigenado ao AE)"
+],
+[
+"Espessura parede VE vs VD",
+"~1,3-1,5 cm vs ~0,3-0,5 cm"
+],
+[
+"Massa média do coração adulto",
+"250-350 g"
+]
+],
+"flash": [
+[
+"Qual valva separa átrio direito do ventrículo direito?",
+"Valva tricúspide (3 cúspides)."
+],
+[
+"Que vasos trazem sangue oxigenado de volta ao coração?",
+"As 4 veias pulmonares, que desembocam no átrio esquerdo."
+],
+[
+"Por que o ventrículo esquerdo tem parede mais espessa?",
+"Porque bombeia sangue contra a alta resistência da circulação sistêmica (corpo inteiro)."
+],
+[
+"A artéria pulmonar carrega sangue arterial ou venoso?",
+"Venoso (pobre em O2) — é exceção à regra de que artéria = sangue oxigenado."
+]
+]
+},
+{
+"n": "2",
+"titulo": "Grande e pequena circulação",
+"frase": "Todo o sangue percorre dois circuitos fechados em série: um curto para respirar e um longo para nutrir.",
+"analogia": "É como uma linha de metrô com duas voltas obrigatórias: uma volta rápida passa na 'estação recarga de oxigênio' (pulmão) e a outra faz o trajeto completo por toda a cidade antes de voltar ao ponto de partida.",
+"conceitos": [
+"Pequena circulação (pulmonar): VD → artéria pulmonar → pulmões → veias pulmonares → AE. É o único lugar onde artéria leva sangue venoso e veia leva sangue arterial.",
+"Grande circulação (sistêmica): VE → aorta → arteríolas → capilares → vênulas → veias cavas → AD.",
+"A troca gasosa efetiva ocorre nos capilares (pulmonares e sistêmicos), onde a parede tem apenas 1 célula de espessura (endotélio).",
+"Circulação porta-hepática e circulação coronariana são circuitos especializados dentro da sistêmica.",
+"Sistema fechado: o sangue nunca sai dos vasos exceto na filtração/troca capilar."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Volume sanguíneo total",
+"~5 L (adulto de 70 kg)"
+],
+[
+"Débito cardíaco em repouso",
+"~5 L/min (todo o sangue circula ~1x por minuto)"
+],
+[
+"Espessura da parede capilar",
+"1 célula (endotélio) — facilita difusão"
+],
+[
+"Fração do DC para os rins",
+"~20-25% (maior fluxo relativo por massa)"
+]
+],
+"flash": [
+[
+"Qual circuito começa no ventrículo direito?",
+"A pequena circulação (pulmonar)."
+],
+[
+"Onde ocorre a hematose?",
+"Nos capilares alveolares dos pulmões (troca O2/CO2)."
+],
+[
+"Em que vasos ocorrem as trocas de gases e nutrientes com os tecidos?",
+"Nos capilares, por difusão através do endotélio de parede única."
+],
+[
+"Qual grande veia devolve sangue da parte inferior do corpo ao coração?",
+"A veia cava inferior."
+]
+]
+}
+]
+},
+{
+"id": "fisiologia-eletrica",
+"nome": "Fisiologia elétrica e ciclo cardíaco",
+"aulas": [
+{
+"n": "3",
+"titulo": "Sistema de condução e potencial de ação",
+"frase": "O coração gera seu próprio ritmo: o nó sinoatrial é o maestro que dispara ~70 vezes por minuto sem precisar de ordem do cérebro.",
+"analogia": "É como o metrônomo automático de um relógio: o nó SA marca o compasso, e existe um 'freio de segurança' (retardo no nó AV) para os átrios esvaziarem antes dos ventrículos contraírem — igual esperar todos entrarem no elevador antes de fechar a porta.",
+"conceitos": [
+"Automatismo cardíaco: o nó sinoatrial (SA), no átrio direito, é o marca-passo natural (~60-100 bpm).",
+"Via de condução: nó SA → nó atrioventricular (AV) → feixe de His → ramos direito/esquerdo → fibras de Purkinje.",
+"O nó AV impõe um atraso (~0,1 s) para os átrios completarem o enchimento ventricular antes da sístole.",
+"Potencial de ação da célula contrátil tem platô prolongado (fase 2) por influxo de Ca2+, gerando período refratário longo que impede tetania.",
+"Potencial de repouso do miócito ventricular ≈ -90 mV; a despolarização é deflagrada por influxo rápido de Na+ (fase 0)."
+],
+"passos": [
+"Nó SA despolariza espontaneamente e gera o impulso.",
+"A onda percorre os átrios → contração atrial (onda P no ECG).",
+"Chega ao nó AV, onde sofre retardo fisiológico (~0,1 s).",
+"Desce pelo feixe de His e seus ramos no septo.",
+"As fibras de Purkinje distribuem o impulso pelos ventrículos → contração ventricular (complexo QRS).",
+"Repolarização ventricular gera a onda T; o coração relaxa e recomeça o ciclo."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Frequência intrínseca do nó SA",
+"60-100 bpm"
+],
+[
+"Retardo no nó AV",
+"~0,1 segundo"
+],
+[
+"Potencial de repouso do miócito",
+"≈ -90 mV"
+],
+[
+"Íon do platô (fase 2)",
+"Ca2+ (cálcio) entrando na célula"
+]
+],
+"flash": [
+[
+"Quem é o marca-passo natural do coração?",
+"O nó sinoatrial (SA), localizado no átrio direito."
+],
+[
+"Qual a função do retardo no nó AV?",
+"Dar tempo para os átrios esvaziarem e encherem os ventrículos antes da sístole ventricular."
+],
+[
+"O que causa o platô prolongado do potencial de ação cardíaco?",
+"O influxo lento de Ca2+, que mantém a despolarização e cria período refratário longo."
+],
+[
+"Qual estrutura distribui o impulso rapidamente pelos ventrículos?",
+"As fibras de Purkinje."
+]
+]
+},
+{
+"n": "4",
+"titulo": "Ciclo cardíaco: sístole e diástole",
+"frase": "Cada batimento é uma coreografia de encher e esvaziar: diástole enche, sístole ejeta, e as bulhas são o som das valvas fechando.",
+"analogia": "Pense em espremer um conta-gotas: a diástole é soltar o bulbo para sugar líquido (enchimento), a sístole é apertar para expelir. O 'toc-tuc' que se ouve é o barulho das válvulas do conta-gotas fechando para o líquido não voltar.",
+"conceitos": [
+"Diástole = relaxamento e enchimento ventricular; Sístole = contração e ejeção.",
+"1ª bulha (TUM/B1): fechamento das valvas atrioventriculares (início da sístole).",
+"2ª bulha (TÁ/B2): fechamento das valvas semilunares (início da diástole).",
+"Volume diastólico final (VDF) ≈ 120-130 mL; volume sistólico final (VSF) ≈ 50 mL.",
+"Volume sistólico (VS) = VDF − VSF ≈ 70 mL por batimento.",
+"Fração de ejeção (FE) = VS/VDF, normal ≈ 55-70% — principal índice de função ventricular."
+],
+"passos": [
+"Calcular Volume Sistólico: VS = VDF − VSF.",
+"Exemplo: VDF = 120 mL e VSF = 50 mL → VS = 120 − 50 = 70 mL.",
+"Calcular Fração de Ejeção: FE = (VS / VDF) × 100.",
+"Exemplo: FE = (70 / 120) × 100 ≈ 58%.",
+"Interpretar: FE ≥ 55% é normal; FE < 40% indica disfunção sistólica (ex.: insuficiência cardíaca)."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Volume diastólico final (VDF)",
+"~120-130 mL"
+],
+[
+"Volume sistólico final (VSF)",
+"~50 mL"
+],
+[
+"Volume sistólico (VS)",
+"~70 mL/batimento"
+],
+[
+"Fração de ejeção normal",
+"55-70%"
+]
+],
+"flash": [
+[
+"O que causa a 1ª bulha (B1)?",
+"O fechamento das valvas atrioventriculares (tricúspide e mitral) no início da sístole."
+],
+[
+"Como se calcula o volume sistólico?",
+"VS = VDF − VSF (volume diastólico final menos volume sistólico final)."
+],
+[
+"Se VDF=110 mL e VSF=44 mL, qual a fração de ejeção?",
+"VS=66 mL; FE=66/110=60%."
+],
+[
+"Uma fração de ejeção de 30% indica o quê?",
+"Disfunção sistólica grave (o coração ejeta pouco do sangue que recebe) — típico de insuficiência cardíaca."
+]
+]
+}
+]
+},
+{
+"id": "pressao-regulacao",
+"nome": "Pressão arterial e regulação",
+"aulas": [
+{
+"n": "5",
+"titulo": "Débito cardíaco e pressão arterial",
+"frase": "A pressão arterial é o produto de quanto sangue o coração empurra pela força que os vasos oferecem de resistência.",
+"analogia": "É como uma mangueira de jardim: aumentar a vazão da torneira (débito cardíaco) ou apertar o bico (resistência dos vasos) — qualquer um dos dois faz a água sair com mais pressão.",
+"conceitos": [
+"Débito Cardíaco (DC) = Frequência Cardíaca (FC) × Volume Sistólico (VS).",
+"Pressão Arterial Média (PAM) ≈ DC × RVP (resistência vascular periférica).",
+"PAM ≈ PA diastólica + 1/3 da pressão de pulso (PA sistólica − PA diastólica).",
+"Pressão de pulso = PA sistólica − PA diastólica (normal ~40 mmHg).",
+"As arteríolas são os principais vasos de resistência; sua vasoconstrição/vasodilatação regula a PA e o fluxo local."
+],
+"passos": [
+"Calcular DC: DC = FC × VS. Ex.: 70 bpm × 70 mL = 4900 mL/min ≈ 5 L/min.",
+"Identificar a PA: ex.: 120/80 mmHg (sistólica/diastólica).",
+"Calcular pressão de pulso: 120 − 80 = 40 mmHg.",
+"Calcular PAM: 80 + (1/3 × 40) = 80 + 13,3 ≈ 93 mmHg.",
+"Interpretar: PAM entre ~70-100 mmHg garante perfusão adequada dos órgãos."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Débito cardíaco em repouso",
+"~5 L/min"
+],
+[
+"PA normal (adulto)",
+"120/80 mmHg"
+],
+[
+"Pressão de pulso normal",
+"~40 mmHg"
+],
+[
+"Principal vaso de resistência",
+"Arteríolas"
+]
+],
+"flash": [
+[
+"Qual a fórmula do débito cardíaco?",
+"DC = FC × VS (frequência cardíaca vezes volume sistólico)."
+],
+[
+"Com FC=80 bpm e VS=75 mL, qual o DC?",
+"80 × 75 = 6000 mL/min = 6 L/min."
+],
+[
+"O que é pressão de pulso e seu valor normal?",
+"PA sistólica − PA diastólica; normal ~40 mmHg (ex.: 120−80)."
+],
+[
+"Calcule a PAM de uma PA 120/90.",
+"Pressão de pulso=30; PAM=90+(30/3)=90+10=100 mmHg."
+]
+]
+},
+{
+"n": "6",
+"titulo": "Regulação neural e hormonal da pressão",
+"frase": "O corpo ajusta a pressão em segundos pelos nervos e em horas pelos hormônios, sempre buscando manter os órgãos irrigados.",
+"analogia": "É como um carro com dois sistemas de controle: o pedal reflexo (barorreceptores) corrige a velocidade instantaneamente numa curva, enquanto o computador de bordo (sistema renina-angiotensina) reajusta o combustível ao longo da viagem.",
+"conceitos": [
+"Barorreceptores no seio carotídeo e arco aórtico detectam a PA e ajustam via bulbo em segundos (reflexo barorreceptor).",
+"Sistema nervoso simpático: aumenta FC, contratilidade e vasoconstrição (noradrenalina) → sobe a PA.",
+"Sistema nervoso parassimpático (nervo vago): reduz a FC → baixa a PA.",
+"Sistema Renina-Angiotensina-Aldosterona (SRAA): rim libera renina → angiotensina II (vasoconstritora) → aldosterona (retém Na+ e água) → sobe a PA.",
+"ADH (vasopressina) retém água nos rins; peptídeo natriurético atrial (ANP) faz o oposto, promovendo excreção de sódio e queda da PA."
+],
+"passos": [
+"Queda súbita de PA (ex.: levantar rápido) reduz o estiramento dos barorreceptores.",
+"O bulbo detecta menos disparos e ativa o simpático / inibe o parassimpático.",
+"Resultado imediato: ↑FC, ↑contratilidade e vasoconstrição → PA sobe.",
+"Se a queda persiste, o rim libera renina, ativando o SRAA (angiotensina II + aldosterona).",
+"Ocorre vasoconstrição e retenção de sódio/água → aumento do volume e da PA em horas."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Localização dos barorreceptores",
+"Seio carotídeo e arco aórtico"
+],
+[
+"Neurotransmissor simpático",
+"Noradrenalina (↑FC e vasoconstrição)"
+],
+[
+"Nervo parassimpático do coração",
+"Nervo vago (X par craniano) — ↓FC"
+],
+[
+"Hormônio final do SRAA",
+"Aldosterona (retém Na+ e água)"
+]
+],
+"flash": [
+[
+"O que fazem os barorreceptores?",
+"Detectam a pressão arterial no seio carotídeo/arco aórtico e disparam ajustes reflexos rápidos via bulbo."
+],
+[
+"Qual o efeito do nervo vago sobre o coração?",
+"Reduz a frequência cardíaca (efeito parassimpático)."
+],
+[
+"Descreva a cascata do SRAA.",
+"Renina (rim) → angiotensina II (vasoconstritora) → aldosterona (retém sódio e água) → aumenta a PA."
+],
+[
+"Qual hormônio se opõe ao SRAA baixando a pressão?",
+"O peptídeo natriurético atrial (ANP), que promove excreção de sódio e água."
+]
+]
+}
+]
+}
+]
+},
+{
+"blocos": [
+{
+"id": "origens-primeira-ri",
+"nome": "Origens e a Primeira Revolução Industrial (1760–1840)",
+"aulas": [
+{
+"n": "1",
+"titulo": "Por que na Inglaterra? As pré-condições",
+"frase": "A Revolução Industrial não foi um acaso: a Inglaterra reuniu capital, carvão, mão de obra e mercado no mesmo lugar e na mesma hora.",
+"analogia": "É como uma receita de bolo em que todos os ingredientes já estavam sobre a bancada ao mesmo tempo. Outros países tinham farinha ou ovos separados; a Inglaterra tinha tudo junto e o forno aceso.",
+"conceitos": [
+"Acumulação primitiva de capital: lucros do comércio ultramarino e do tráfico financiaram as primeiras fábricas.",
+"Cercamentos (Enclosure Acts): expulsão de camponeses das terras comuns criou mão de obra livre e barata para as cidades.",
+"Abundância de carvão e minério de ferro em território próximo, reduzindo custos de energia e matéria-prima.",
+"Pioneirismo comercial e naval: maior marinha mercante e colônias como mercado consumidor cativo.",
+"Estabilidade política e institucional após a Revolução Gloriosa (1688), com proteção à propriedade privada e às patentes."
+],
+"passos": [
+"Comércio colonial e tráfico geram grande acúmulo de capital.",
+"Cercamentos expulsam camponeses e formam um exército de trabalhadores urbanos.",
+"Capital disponível é investido em máquinas e fábricas.",
+"Carvão e ferro locais barateiam a produção.",
+"Colônias absorvem os produtos manufaturados, realimentando o lucro."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Período da Primeira RI",
+"1760–1840"
+],
+[
+"País pioneiro",
+"Inglaterra (Reino Unido)"
+],
+[
+"Marco simbólico do início",
+"década de 1760, indústria têxtil algodoeira"
+],
+[
+"Fonte de energia dominante",
+"carvão mineral e vapor"
+]
+],
+"flash": [
+[
+"O que foram os cercamentos (enclosures)?",
+"A privatização das terras comunais que expulsou camponeses do campo, gerando mão de obra livre para as fábricas."
+],
+[
+"Que evento político deu estabilidade institucional à Inglaterra?",
+"A Revolução Gloriosa de 1688, que consolidou a monarquia parlamentar e a proteção à propriedade."
+],
+[
+"Qual setor iniciou a industrialização inglesa?",
+"O têxtil algodoeiro."
+],
+[
+"O que é acumulação primitiva de capital?",
+"O acúmulo inicial de riqueza (comércio, colônias, tráfico) que financiou os investimentos industriais."
+]
+]
+},
+{
+"n": "2",
+"titulo": "A máquina a vapor e a mecanização têxtil",
+"frase": "O vapor libertou a produção da força humana, animal e da água: a fábrica pôde nascer em qualquer lugar e nunca mais parar.",
+"analogia": "Antes, produzir dependia do rio para girar a roda-d'água, como um moinho preso à correnteza. A máquina a vapor foi como colocar um motor portátil: agora a fábrica ia até a cidade, e não a cidade até o rio.",
+"conceitos": [
+"Máquina a vapor de James Watt (patente de 1769; aperfeiçoada 1776): converteu energia térmica do carvão em trabalho mecânico com eficiência inédita, usando condensador separado.",
+"Spinning Jenny (Hargreaves, 1764): fiava vários fios ao mesmo tempo, multiplicando a produtividade da fiação.",
+"Water frame (Arkwright, 1769) e mule (Crompton, 1779): mecanizaram a fiação em larga escala e com fios mais resistentes.",
+"Tear mecânico (Cartwright, 1785): mecanizou a tecelagem, fechando o ciclo têxtil.",
+"Sistema fabril: concentração de máquinas, trabalhadores e energia sob um mesmo teto, substituindo o trabalho doméstico (putting-out)."
+],
+"passos": [
+"Queima de carvão aquece a água na caldeira.",
+"A água vira vapor sob pressão.",
+"O vapor empurra o pistão dentro do cilindro (movimento retilíneo).",
+"O sistema biela-manivela converte esse movimento em rotação.",
+"A rotação aciona teares e fiandeiras via eixos e correias."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Patente da máquina de Watt",
+"1769"
+],
+[
+"Spinning Jenny",
+"1764, James Hargreaves"
+],
+[
+"Tear mecânico",
+"1785, Edmund Cartwright"
+],
+[
+"Unidade de potência",
+"watt (W), em homenagem a James Watt"
+]
+],
+"flash": [
+[
+"Qual a inovação-chave de Watt sobre a máquina de Newcomen?",
+"O condensador separado, que evitava perda de calor e aumentava muito a eficiência."
+],
+[
+"O que a Spinning Jenny mecanizou?",
+"A fiação, permitindo fiar vários fios simultaneamente."
+],
+[
+"O que foi o sistema fabril?",
+"A reunião de máquinas, energia e trabalhadores em um único local, substituindo o trabalho doméstico."
+],
+[
+"Que invenção de 1785 mecanizou a tecelagem?",
+"O tear mecânico de Cartwright."
+]
+]
+},
+{
+"n": "3",
+"titulo": "Transformações sociais: proletariado, cidades e resistência",
+"frase": "A fábrica criou uma nova classe — o operariado — e uma nova vida: urbana, cronometrada e disciplinada pela máquina.",
+"analogia": "O relógio da fábrica virou o novo sol: não era mais a luz do dia que ditava o trabalho, mas o apito e o ponteiro. O corpo do trabalhador teve que se ajustar ao ritmo do metal.",
+"conceitos": [
+"Proletariado: classe que não possui meios de produção e vende sua força de trabalho por salário.",
+"Êxodo rural e urbanização acelerada: crescimento explosivo de cidades industriais como Manchester.",
+"Condições de trabalho brutais: jornadas de 14–16 horas, trabalho infantil e feminino, salários baixos e insalubridade.",
+"Ludismo (1811–1816): trabalhadores destruíam máquinas, vistas como causa do desemprego e da miséria.",
+"Cartismo (1838–1848): movimento por direitos políticos, com a People's Charter exigindo sufrágio universal masculino."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Jornada típica",
+"14 a 16 horas por dia"
+],
+[
+"Movimento de quebra de máquinas",
+"Ludismo, 1811–1816"
+],
+[
+"Cidade-símbolo",
+"Manchester ('Cottonopolis')"
+],
+[
+"Cartismo",
+"1838–1848"
+]
+],
+"flash": [
+[
+"O que é o proletariado?",
+"A classe trabalhadora que não possui meios de produção e vive da venda de sua força de trabalho."
+],
+[
+"O que foi o ludismo?",
+"Movimento operário (1811–1816) que destruía máquinas em protesto contra desemprego e péssimas condições."
+],
+[
+"O que reivindicava o cartismo?",
+"Direitos políticos, sobretudo o sufrágio universal masculino, pela People's Charter."
+],
+[
+"Que fenômeno demográfico marcou a RI?",
+"O êxodo rural e a urbanização acelerada."
+]
+]
+}
+]
+},
+{
+"id": "segunda-ri",
+"nome": "A Segunda Revolução Industrial (1870–1914)",
+"aulas": [
+{
+"n": "4",
+"titulo": "Novas energias e novos materiais: aço, eletricidade e petróleo",
+"frase": "Se o vapor moveu a Primeira Revolução, foram a eletricidade, o aço e o petróleo que aceleraram a Segunda a uma velocidade inédita.",
+"analogia": "É como trocar uma bicicleta por um carro: a base era a mesma (ir mais longe produzindo mais), mas as novas fontes de energia deram uma potência e um alcance que antes eram impensáveis.",
+"conceitos": [
+"Conversor Bessemer (1856): permitiu produzir aço em massa e barato, insumo de ferrovias, navios e arranha-céus.",
+"Eletricidade: lâmpada incandescente de Edison (1879) e o gerador tornaram a energia distribuível e a iluminação artificial viável.",
+"Petróleo e motor a combustão interna: base para o automóvel (Benz, 1885) e, depois, a aviação.",
+"Indústria química: fertilizantes, corantes sintéticos, explosivos e plásticos primitivos.",
+"Novos meios de comunicação: telégrafo, telefone (Bell, 1876) e rádio encurtaram distâncias."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Período da Segunda RI",
+"1870–1914"
+],
+[
+"Conversor de aço",
+"Bessemer, 1856"
+],
+[
+"Lâmpada incandescente",
+"Edison, 1879"
+],
+[
+"Primeiro automóvel a combustão",
+"Karl Benz, 1885"
+]
+],
+"flash": [
+[
+"Qual invenção barateou a produção de aço?",
+"O conversor Bessemer (1856)."
+],
+[
+"Quais as fontes de energia típicas da Segunda RI?",
+"Eletricidade e petróleo (além do carvão)."
+],
+[
+"Quem patenteou o telefone em 1876?",
+"Alexander Graham Bell."
+],
+[
+"O que o motor a combustão interna viabilizou?",
+"O automóvel e, depois, a aviação, usando derivados de petróleo."
+]
+]
+},
+{
+"n": "5",
+"titulo": "Taylorismo e fordismo: a produção em massa",
+"frase": "Não bastava produzir muito; era preciso produzir de forma cronometrada, padronizada e em série — o operário virou parte da linha.",
+"analogia": "Imagine uma esteira de sushi: em vez de o cliente ir até a cozinha, os pratos passam prontos diante dele. Na linha de montagem, é o carro que anda até o trabalhador parado, e não o contrário.",
+"conceitos": [
+"Taylorismo (Frederick Taylor): administração científica que cronometra tarefas, separa concepção de execução e busca o 'melhor modo' de produzir.",
+"Fordismo (Henry Ford): linha de montagem móvel, produção em massa de produtos padronizados e barateamento do preço final.",
+"Linha de montagem (Ford, 1913): reduziu drasticamente o tempo de fabricação do Ford Modelo T.",
+"Five-dollar day (1914): salário de US$ 5/dia para reter operários e criar consumidores de seus próprios carros.",
+"Padronização e intercambiabilidade de peças: qualquer peça serve em qualquer unidade, acelerando montagem e reparo."
+],
+"passos": [
+"Padronizar o produto (ex.: um único modelo, o Modelo T).",
+"Dividir a montagem em tarefas simples e repetitivas.",
+"Dispor os trabalhadores fixos ao longo de uma esteira móvel.",
+"O produto se desloca; cada operário executa sempre a mesma etapa.",
+"Cronometrar tudo para eliminar tempo ocioso e maximizar o volume."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Linha de montagem Ford",
+"1913"
+],
+[
+"Tempo de montagem do Modelo T",
+"de ~12h para ~1h30 (aprox.)"
+],
+[
+"Salário Ford",
+"US$ 5 por dia, a partir de 1914"
+],
+[
+"Autor da administração científica",
+"Frederick W. Taylor"
+]
+],
+"flash": [
+[
+"Qual a diferença entre taylorismo e fordismo?",
+"O taylorismo cronometra e padroniza tarefas; o fordismo acrescenta a linha de montagem móvel e a produção em massa."
+],
+[
+"O que foi a linha de montagem de 1913?",
+"A esteira móvel de Ford que levava o produto ao trabalhador, reduzindo muito o tempo de produção."
+],
+[
+"Por que Ford pagava US$ 5 por dia?",
+"Para reduzir a rotatividade e transformar operários em consumidores de seus carros."
+],
+[
+"O que é intercambiabilidade de peças?",
+"O princípio de que peças padronizadas servem em qualquer unidade, acelerando montagem e reparo."
+]
+]
+}
+]
+},
+{
+"id": "impactos-legado",
+"nome": "Impactos globais e legado",
+"aulas": [
+{
+"n": "6",
+"titulo": "Capitalismo, imperialismo e a divisão internacional do trabalho",
+"frase": "A indústria precisava de matéria-prima e mercado — e foi buscá-los pelo mundo, redesenhando o mapa com a corrida imperialista.",
+"analogia": "A fábrica é como um animal faminto: quanto mais come (matéria-prima), mais precisa vender (mercados). Quando o quintal de casa ficou pequeno, as potências saíram para 'conquistar despensas' em outros continentes.",
+"conceitos": [
+"Divisão internacional do trabalho: países industrializados exportam manufaturados; periferia exporta matérias-primas e alimentos.",
+"Imperialismo/Neocolonialismo: partilha da África (Conferência de Berlim, 1884–85) e domínio na Ásia por matéria-prima e mercados.",
+"Capitalismo financeiro/monopolista: fusões, cartéis, trustes e forte peso dos bancos e do capital financeiro.",
+"Liberalismo econômico: defesa do livre mercado e da mínima intervenção estatal (herança de Adam Smith).",
+"Consolidação da burguesia industrial como classe dominante e do assalariamento como relação de trabalho central."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Conferência de Berlim",
+"1884–1885 (partilha da África)"
+],
+[
+"Fase do capitalismo",
+"financeiro/monopolista"
+],
+[
+"Obra-símbolo do liberalismo",
+"A Riqueza das Nações (Adam Smith, 1776)"
+],
+[
+"Papel da periferia",
+"fornecer matéria-prima e consumir manufaturados"
+]
+],
+"flash": [
+[
+"O que é a divisão internacional do trabalho?",
+"O arranjo em que países industriais vendem manufaturados e a periferia fornece matérias-primas e alimentos."
+],
+[
+"Que conferência formalizou a partilha da África?",
+"A Conferência de Berlim (1884–1885)."
+],
+[
+"O que caracteriza o capitalismo monopolista?",
+"A concentração em trustes, cartéis e fusões, com forte papel do capital financeiro."
+],
+[
+"Qual obra fundamenta o liberalismo econômico?",
+"'A Riqueza das Nações', de Adam Smith (1776)."
+]
+]
+},
+{
+"n": "7",
+"titulo": "Ideologias operárias e o legado da industrialização",
+"frase": "A miséria fabril não gerou só máquinas: gerou ideias — do socialismo ao sindicalismo — que moldam o mundo até hoje.",
+"analogia": "A Revolução Industrial foi como um terremoto: além de derrubar o mundo antigo, deixou 'réplicas' na forma de ideologias e direitos que continuam a sacudir a política contemporânea.",
+"conceitos": [
+"Socialismo científico (Marx e Engels, Manifesto Comunista, 1848): análise da luta de classes e crítica à exploração da mais-valia.",
+"Mais-valia: parte do valor produzido pelo trabalhador que é apropriada pelo capitalista, cerne da crítica marxista.",
+"Socialismo utópico (Owen, Fourier, Saint-Simon): propostas de comunidades igualitárias e reforma social pacífica.",
+"Sindicalismo e conquistas trabalhistas: redução de jornada, regulação do trabalho infantil e direito de associação.",
+"Anarquismo: rejeição do Estado e do capital, defendendo a auto-organização dos trabalhadores."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Manifesto Comunista",
+"1848, Marx e Engels"
+],
+[
+"Conceito central de Marx",
+"mais-valia e luta de classes"
+],
+[
+"Socialistas utópicos",
+"Owen, Fourier, Saint-Simon"
+],
+[
+"Conquista trabalhista-símbolo",
+"jornada de 8 horas"
+]
+],
+"flash": [
+[
+"O que é mais-valia?",
+"A parte do valor produzido pelo trabalhador que é apropriada pelo capitalista sem remuneração."
+],
+[
+"Quem escreveu o Manifesto Comunista e quando?",
+"Karl Marx e Friedrich Engels, em 1848."
+],
+[
+"Qual a diferença entre socialismo utópico e científico?",
+"O utópico propõe comunidades ideais e reformas pacíficas; o científico analisa a luta de classes e a economia capitalista."
+],
+[
+"Cite uma conquista histórica do sindicalismo.",
+"A redução da jornada para 8 horas e a regulação do trabalho infantil."
+]
+]
+}
+]
+}
+],
+"desc": "Matéria completa de Revolução Industrial: das origens inglesas à produção em massa e ao legado ideológico, com dados, conceitos e flashcards de nível vestibular.",
+"dia": "Exemplo · história",
+"emoji": "🏭",
+"id": "revolucao-industrial",
+"tema": "rosa",
+"titulo": "Revolução Industrial"
+},
+{
+"id": "estatistica",
+"emoji": "📊",
+"titulo": "Estatística e Probabilidade",
+"dia": "Exemplo · matemática / dados",
+"tema": "azul",
+"desc": "Do resumo de dados às leis do acaso: medidas de tendência e dispersão, teoria da probabilidade, distribuições e inferência estatística com fórmulas, valores e passo a passo nível vestibular e graduação.",
+"blocos": [
+{
+"id": "estatistica-descritiva",
+"nome": "Estatística Descritiva",
+"aulas": [
+{
+"n": "1",
+"titulo": "Medidas de Tendência Central",
+"frase": "Média, mediana e moda respondem à mesma pergunta — 'qual é o valor típico?' — mas cada uma tropeça em situações diferentes.",
+"analogia": "Pense no salário de um bar com 9 garçons ganhando R$ 2.000 e o dono ganhando R$ 200.000. A média (R$ 21.800) diz que 'todos ganham bem', mas a mediana (R$ 2.000) revela a realidade da maioria. Por isso jornais usam mediana para renda: um bilionário na amostra não distorce o resultado.",
+"conceitos": [
+"Média aritmética: soma de todos os valores dividida pela quantidade n. Sensível a valores extremos (outliers).",
+"Mediana: valor que divide o rol ordenado ao meio (50% abaixo, 50% acima). Robusta a outliers.",
+"Moda: valor de maior frequência; um conjunto pode ser amodal, unimodal ou multimodal.",
+"Em distribuição perfeitamente simétrica, média = mediana = moda; em assimetria à direita, média > mediana > moda.",
+"Média ponderada: cada valor multiplicado por um peso, útil para notas com pesos diferentes."
+],
+"passos": [
+"Ordene os dados em rol crescente (obrigatório para mediana e moda).",
+"Média: some todos os valores e divida por n.",
+"Mediana com n ímpar: pegue o termo da posição (n+1)/2.",
+"Mediana com n par: faça a média dos dois termos centrais, posições n/2 e n/2+1.",
+"Moda: identifique o valor (ou valores) que mais se repete."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Média de {4, 8, 6, 5, 7}",
+"6 (soma 30 ÷ 5)"
+],
+[
+"Mediana de {3, 5, 7, 9, 11}",
+"7 (posição 3ª)"
+],
+[
+"Mediana de {2, 4, 6, 8}",
+"5 (média de 4 e 6)"
+],
+[
+"Assimetria positiva (cauda à direita)",
+"média > mediana > moda"
+]
+],
+"flash": [
+[
+"Qual medida é imune a valores extremos?",
+"A mediana (e também a moda), diferente da média que é 'puxada' por outliers."
+],
+[
+"Como achar a mediana com número par de dados?",
+"Faça a média aritmética dos dois valores centrais do rol ordenado."
+],
+[
+"Média de 7, 7, 8, 10 com pesos 1, 1, 2, 4?",
+"(7+7+16+40)/8 = 70/8 = 8,75."
+],
+[
+"Numa distribuição simétrica, o que acontece com as três medidas?",
+"Média = mediana = moda coincidem no centro."
+]
+]
+},
+{
+"n": "2",
+"titulo": "Medidas de Dispersão",
+"frase": "Duas turmas com a mesma média 6 podem ser mundos diferentes: uma com todos em 6, outra com metade em 2 e metade em 10 — a dispersão mede esse 'espalhamento'.",
+"analogia": "É a diferença entre um atirador que sempre acerta perto do centro e outro que acerta a mesma média de pontos, mas espalhando os tiros por todo o alvo. A média é igual; o desvio padrão delata quem tem pontaria consistente.",
+"conceitos": [
+"Amplitude: diferença entre o maior e o menor valor; simples, mas ignora o meio.",
+"Variância: média dos quadrados dos desvios em relação à média. Populacional divide por N; amostral divide por (n-1).",
+"Desvio padrão: raiz quadrada da variância; volta à unidade original dos dados.",
+"Coeficiente de variação: CV = (desvio padrão ÷ média) × 100%, permite comparar dispersões de grandezas distintas.",
+"Correção de Bessel: usar (n-1) na variância amostral corrige o viés na estimativa da variância populacional."
+],
+"passos": [
+"Calcule a média do conjunto.",
+"Para cada valor, subtraia a média e eleve o resultado ao quadrado (o desvio ao quadrado).",
+"Some todos os desvios quadráticos.",
+"Divida por N (população) ou por n-1 (amostra) para obter a variância.",
+"Tire a raiz quadrada da variância para obter o desvio padrão."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Variância de {2,4,6,8,10}, média 6",
+"8 (soma 40 ÷ 5)"
+],
+[
+"Desvio padrão do mesmo conjunto",
+"√8 ≈ 2,83"
+],
+[
+"Amplitude de {5, 12, 3, 9}",
+"12 − 3 = 9"
+],
+[
+"Divisor da variância amostral",
+"n − 1 (Bessel)"
+]
+],
+"flash": [
+[
+"Por que usar (n-1) na variância amostral?",
+"Correção de Bessel: compensa o viés e torna a estimativa da variância populacional não enviesada."
+],
+[
+"Qual medida usar para comparar dispersão de pesos (kg) e alturas (cm)?",
+"O coeficiente de variação (CV), pois é adimensional (em %)."
+],
+[
+"Desvio padrão pode ser negativo?",
+"Nunca: é raiz de uma soma de quadrados, sempre ≥ 0."
+],
+[
+"Se somo 5 a todos os dados, o desvio padrão muda?",
+"Não: somar constante desloca a média mas não altera a dispersão."
+]
+]
+},
+{
+"n": "3",
+"titulo": "Distribuição de Frequências e Quartis",
+"frase": "Organizar dados brutos em classes e quartis transforma uma lista caótica de números em uma história visível — e o boxplot conta essa história em um só desenho.",
+"analogia": "É como separar uma pilha de provas em faixas de nota (0-2, 2-4, 4-6...) para ver de relance onde a turma se concentra, em vez de ler cada prova uma a uma. Os quartis são os 'marcos de km' que dividem a estrada de dados em quatro trechos iguais.",
+"conceitos": [
+"Frequência absoluta (fi): contagem de ocorrências; frequência relativa (fr): fi ÷ n, geralmente em %.",
+"Quartis dividem o rol em 4 partes: Q1 (25%), Q2 = mediana (50%), Q3 (75%).",
+"Amplitude interquartil: AIQ = Q3 − Q1, mede a dispersão dos 50% centrais e é robusta a outliers.",
+"Regra do outlier: valores abaixo de Q1 − 1,5×AIQ ou acima de Q3 + 1,5×AIQ são considerados atípicos.",
+"Boxplot resume mínimo, Q1, mediana, Q3 e máximo, revelando assimetria e pontos discrepantes."
+],
+"passos": [
+"Ordene os dados em rol crescente.",
+"Encontre Q2 (a mediana), que separa a metade inferior da superior.",
+"Q1 é a mediana da metade inferior; Q3 é a mediana da metade superior.",
+"Calcule a AIQ = Q3 − Q1.",
+"Defina as cercas: Q1 − 1,5×AIQ e Q3 + 1,5×AIQ; valores fora delas são outliers."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"Q2 (mediana) equivale a",
+"percentil 50"
+],
+[
+"AIQ de dados com Q1=10 e Q3=22",
+"12"
+],
+[
+"Cerca superior (Q3=22, AIQ=12)",
+"22 + 18 = 40"
+],
+[
+"Soma das frequências relativas",
+"1 (ou 100%)"
+]
+],
+"flash": [
+[
+"O que representa a amplitude interquartil (AIQ)?",
+"A dispersão dos 50% centrais dos dados: AIQ = Q3 − Q1."
+],
+[
+"Qual quartil coincide com a mediana?",
+"O Q2, que é o percentil 50."
+],
+[
+"Como o boxplot sinaliza assimetria?",
+"Se a mediana está descentralizada na caixa ou os 'bigodes' têm comprimentos muito diferentes."
+],
+[
+"Um valor 45 com cerca superior 40 é o quê?",
+"Um outlier (valor atípico), pois ultrapassa Q3 + 1,5×AIQ."
+]
+]
+}
+]
+},
+{
+"id": "probabilidade",
+"nome": "Teoria da Probabilidade",
+"aulas": [
+{
+"n": "4",
+"titulo": "Conceitos e Axiomas de Probabilidade",
+"frase": "Probabilidade é a matemática da incerteza: transforma o 'talvez' em um número entre 0 e 1 que segue regras rígidas.",
+"analogia": "É como um mapa de todos os finais possíveis de um jogo (o espaço amostral) onde você pinta as regiões que te interessam (o evento). A probabilidade é simplesmente a fração da área pintada em relação ao mapa inteiro — quando todos os finais são igualmente prováveis.",
+"conceitos": [
+"Espaço amostral (Ω): conjunto de todos os resultados possíveis; evento é qualquer subconjunto de Ω.",
+"Definição clássica de Laplace: P(A) = casos favoráveis ÷ casos possíveis (para resultados equiprováveis).",
+"Axiomas de Kolmogorov: 0 ≤ P(A) ≤ 1; P(Ω) = 1; para eventos disjuntos P(A∪B) = P(A) + P(B).",
+"Regra da adição geral: P(A∪B) = P(A) + P(B) − P(A∩B).",
+"Evento complementar: P(A') = 1 − P(A), atalho essencial para o cálculo do 'pelo menos um'."
+],
+"passos": [
+"Defina claramente o espaço amostral Ω e conte seus elementos.",
+"Identifique o evento de interesse A e conte seus casos favoráveis.",
+"Aplique P(A) = favoráveis ÷ possíveis se os resultados forem equiprováveis.",
+"Para uniões, subtraia a interseção para não contar duas vezes.",
+"Quando pedir 'pelo menos um', calcule 1 − P(nenhum) via complementar."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"P(número par) num dado de 6 faces",
+"3/6 = 1/2"
+],
+[
+"|Ω| ao lançar dois dados",
+"36 resultados"
+],
+[
+"P(soma 7 com dois dados)",
+"6/36 = 1/6"
+],
+[
+"Intervalo de qualquer probabilidade",
+"0 ≤ P ≤ 1"
+]
+],
+"flash": [
+[
+"Qual a fórmula da probabilidade clássica de Laplace?",
+"P(A) = número de casos favoráveis ÷ número de casos possíveis."
+],
+[
+"Como calcular P(A∪B) quando A e B podem ocorrer juntos?",
+"P(A) + P(B) − P(A∩B), subtraindo a interseção."
+],
+[
+"Truque para 'pelo menos um acerto'?",
+"Calcular 1 − P(nenhum acerto) pelo evento complementar."
+],
+[
+"Quanto vale P do espaço amostral inteiro?",
+"Sempre 1 (certeza, axioma de Kolmogorov)."
+]
+]
+},
+{
+"n": "5",
+"titulo": "Probabilidade Condicional e Teorema de Bayes",
+"frase": "Uma informação nova reescreve as chances: saber que 'já choveu de manhã' muda a probabilidade de chover à tarde — isso é probabilidade condicional.",
+"analogia": "Imagine um teste de doença 99% preciso para uma doença rara (1 em 10.000). Se você testa positivo, a intuição grita 'estou doente!'. Mas Bayes revela que, como a doença é rara, a maioria dos positivos são falsos alarmes — sua chance real de estar doente é surpreendentemente baixa. Bayes atualiza crenças com evidências.",
+"conceitos": [
+"Probabilidade condicional: P(A|B) = P(A∩B) ÷ P(B), a chance de A dado que B ocorreu.",
+"Regra do produto: P(A∩B) = P(A|B) × P(B) = P(B|A) × P(A).",
+"Eventos independentes: P(A∩B) = P(A)×P(B), ou seja, B não altera a chance de A.",
+"Teorema de Bayes: P(A|B) = [P(B|A) × P(A)] ÷ P(B), inverte a condicional.",
+"Probabilidade total: P(B) = ΣP(B|Ai)×P(Ai) sobre uma partição do espaço amostral."
+],
+"passos": [
+"Identifique o que já é conhecido (a condição B) e o que se quer (A).",
+"Escreva a definição P(A|B) = P(A∩B) ÷ P(B).",
+"Para Bayes, monte P(A|B) = P(B|A)×P(A) ÷ P(B).",
+"Se P(B) não for direto, use a probabilidade total somando sobre os cenários.",
+"Verifique independência testando se P(A|B) = P(A)."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"P(A|B) fórmula",
+"P(A∩B) ÷ P(B)"
+],
+[
+"Dois dados, P(soma 8 | 1º dado = 5)",
+"1/6"
+],
+[
+"Teste independência",
+"P(A∩B) = P(A)×P(B)"
+],
+[
+"Base do raciocínio bayesiano",
+"atualizar a priori com evidência"
+]
+],
+"flash": [
+[
+"Escreva a definição de probabilidade condicional.",
+"P(A|B) = P(A∩B) ÷ P(B), com P(B) > 0."
+],
+[
+"Quando dois eventos são independentes?",
+"Quando P(A∩B) = P(A)×P(B), ou seja, P(A|B) = P(A)."
+],
+[
+"O que o Teorema de Bayes permite fazer?",
+"Inverter a condicional: obter P(causa|efeito) a partir de P(efeito|causa)."
+],
+[
+"Por que um teste 99% preciso ainda dá muitos falsos positivos em doença rara?",
+"Porque a baixa prevalência (priori) faz os poucos verdadeiros positivos serem superados pelos falsos positivos da população saudável."
+]
+]
+}
+]
+},
+{
+"id": "distribuicoes-inferencia",
+"nome": "Distribuições e Inferência",
+"aulas": [
+{
+"n": "6",
+"titulo": "Distribuições de Probabilidade (Binomial e Normal)",
+"frase": "A binomial conta sucessos em tentativas repetidas; a normal descreve o mundo contínuo — e a curva do sino aparece em quase tudo que a natureza mede.",
+"analogia": "A binomial é jogar uma moeda 10 vezes e perguntar 'quantas caras?'. A normal é medir a altura de 10 mil pessoas: a maioria fica perto da média, poucos são muito altos ou muito baixos, formando o sino. Curiosamente, se você somar muitas binomiais, elas viram uma normal.",
+"conceitos": [
+"Binomial: n ensaios independentes de Bernoulli com prob. p; P(X=k) = C(n,k)·p^k·(1−p)^(n−k).",
+"Média da binomial = n·p; variância = n·p·(1−p).",
+"Normal: curva simétrica em forma de sino, definida por média μ e desvio padrão σ.",
+"Regra empírica 68-95-99,7: percentuais dentro de 1σ, 2σ e 3σ da média.",
+"Escore-z: z = (x − μ) ÷ σ padroniza qualquer normal na normal padrão (μ=0, σ=1)."
+],
+"passos": [
+"Identifique se o experimento é discreto com sucesso/fracasso (binomial) ou contínuo (normal).",
+"Na binomial, defina n, p e k, e aplique C(n,k)·p^k·(1−p)^(n−k).",
+"Na normal, calcule o escore-z = (x − μ) ÷ σ.",
+"Consulte a tabela z (ou a regra empírica) para achar a área/probabilidade.",
+"Interprete a área sob a curva como a probabilidade pedida."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"P(2 caras em 4 lançamentos), p=0,5",
+"C(4,2)·0,5⁴ = 6/16 = 0,375"
+],
+[
+"Média de binomial com n=20, p=0,3",
+"n·p = 6"
+],
+[
+"Área dentro de ±1σ na normal",
+"≈ 68%"
+],
+[
+"Área dentro de ±2σ na normal",
+"≈ 95%"
+]
+],
+"flash": [
+[
+"Qual a fórmula da probabilidade binomial?",
+"P(X=k) = C(n,k)·p^k·(1−p)^(n−k)."
+],
+[
+"Média e variância da distribuição binomial?",
+"Média = n·p e variância = n·p·(1−p)."
+],
+[
+"O que diz a regra empírica 68-95-99,7?",
+"Numa normal, ~68% dos dados caem em ±1σ, ~95% em ±2σ e ~99,7% em ±3σ da média."
+],
+[
+"Para que serve o escore-z?",
+"Padronizar um valor: z = (x−μ)/σ, permitindo usar a tabela da normal padrão."
+]
+]
+},
+{
+"n": "7",
+"titulo": "Inferência: Amostragem, Intervalos e Testes",
+"frase": "Inferência estatística é a arte de falar sobre a população inteira olhando apenas para uma amostra — com uma margem de erro honesta.",
+"analogia": "É provar a sopa com uma colher: você não precisa tomar a panela inteira para saber se está salgada. O Teorema Central do Limite garante que, se a colher (amostra) for bem misturada e grande o bastante, ela representa fielmente a panela (população).",
+"conceitos": [
+"Teorema Central do Limite: para n grande, a distribuição das médias amostrais é aproximadamente normal, qualquer que seja a população original.",
+"Erro padrão da média = σ ÷ √n; cresce a precisão à medida que n aumenta.",
+"Intervalo de confiança de 95%: média ± 1,96 × erro padrão, captura o parâmetro em 95% das amostras.",
+"Teste de hipóteses: H0 (hipótese nula) vs H1 (alternativa); o p-valor mede a evidência contra H0.",
+"Nível de significância α (tipicamente 0,05): rejeita-se H0 quando p-valor < α; erro tipo I é rejeitar H0 verdadeira."
+],
+"passos": [
+"Formule H0 (status quo) e H1 (o que se quer provar).",
+"Escolha o nível de significância α (geralmente 0,05).",
+"Colete a amostra e calcule a estatística de teste (ex.: z ou t).",
+"Obtenha o p-valor associado à estatística.",
+"Compare: se p-valor < α, rejeite H0; caso contrário, não há evidência para rejeitá-la."
+],
+"dadosLabel": "Números que caem na prova",
+"dados": [
+[
+"z para intervalo de confiança de 95%",
+"1,96"
+],
+[
+"Erro padrão da média",
+"σ ÷ √n"
+],
+[
+"Nível de significância usual (α)",
+"0,05 (5%)"
+],
+[
+"Erro tipo I",
+"rejeitar H0 sendo H0 verdadeira"
+]
+],
+"flash": [
+[
+"O que garante o Teorema Central do Limite?",
+"Que a distribuição das médias amostrais tende à normal para n grande, independente da distribuição da população."
+],
+[
+"Como o erro padrão se comporta ao aumentar n?",
+"Diminui, pois é σ/√n; amostras maiores dão estimativas mais precisas."
+],
+[
+"O que significa um p-valor de 0,03 com α = 0,05?",
+"Como 0,03 < 0,05, rejeita-se H0: o resultado é estatisticamente significativo."
+],
+[
+"Qual a diferença entre erro tipo I e tipo II?",
+"Tipo I: rejeitar H0 verdadeira (falso positivo). Tipo II: não rejeitar H0 falsa (falso negativo)."
+]
+]
+}
+]
+}
+]
+}
+];   /* conteúdo de demonstração; no deploy real vem do Supabase */
 
 /* ================= LÓGICA ================= */
 let provaAtiva = null;
 let blocoAtivo = 0;
 let studied = {};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
 function entrar(){
   document.getElementById('intro').classList.add('hide');
@@ -332,10 +2655,10 @@ function cardProva(p,i){
   const c=document.createElement('div');
   c.className='prova-card'+(p.tema==='azul'?' quinta':'')+(p.finalizada?' finalizada':'');
   c.onclick=()=>escolherProva(i);
-  c.innerHTML=`<div class="pc-emoji">${p.emoji}</div>
-    <div class="pc-dia">${p.dia}</div>
-    <h3>${p.titulo}</h3>
-    <div class="pc-desc">${p.desc}</div>
+  c.innerHTML=`<div class="pc-emoji">${esc(p.emoji)}</div>
+    <div class="pc-dia">${esc(p.dia)}</div>
+    <h3>${esc(p.titulo)}</h3>
+    <div class="pc-desc">${esc(p.desc)}</div>
     <div class="pc-go">${p.finalizada?'✓':'→'}</div>`;
   return c;
 }
@@ -366,6 +2689,7 @@ async function extrairPdf(file){
 }
 async function enviarFormulario(){
   const st=document.getElementById('f-status'); st.className='form-status';
+  if(SB_URL.includes('{{')){ st.textContent='ℹ️ No modo demonstração a geração por IA está desativada. Explore as matérias de exemplo abaixo.'; return; }
   const titulo=_v('f-titulo'), data=_v('f-data');
   const files=document.getElementById('f-files').files;
   if(!titulo||!data||!files.length){ st.className='form-status erro'; st.textContent='Preencha o nome, a data e anexe ao menos 1 PDF.'; return; }
@@ -423,45 +2747,45 @@ function renderAulas(){
       card.classList.add('open');
       card.innerHTML=`
       <div class="aula-head" onclick="toggleAula(this)">
-        <div class="aula-num">${a.n}</div>
-        <div class="aula-titulo">${a.titulo}</div>
+        <div class="aula-num">${esc(a.n)}</div>
+        <div class="aula-titulo">${esc(a.titulo)}</div>
         <div class="aula-check">✅</div>
         <div class="chevron">▾</div>
       </div>
       <div class="aula-body">
-        ${a.desc?`<div class="sec"><div class="analogia">${a.desc}</div></div>`:''}
+        ${a.desc?`<div class="sec"><div class="analogia">${esc(a.desc)}</div></div>`:''}
         <div class="sec"><video class="video-aula" controls playsinline preload="metadata" src="${a.video}"></video></div>
         <button class="mark-btn" onclick="marcar('${k}',this)">${isStudied?'✓ Assistido — toque para desmarcar':'Marcar como assistido'}</button>
       </div>`;
       wrap.appendChild(card); return;
     }
-    const conceitosHtml=a.conceitos.map(c=>`<li>${c}</li>`).join('');
-    const dadosHtml=a.dados.map(d=>`<li><span class="dado-tag">${d[0]}</span>${d[1]}</li>`).join('');
+    const conceitosHtml=a.conceitos.map(c=>`<li>${esc(c)}</li>`).join('');
+    const dadosHtml=a.dados.map(d=>`<li><span class="dado-tag">${esc(d[0])}</span>${esc(d[1])}</li>`).join('');
     const flashHtml=a.flash.map(f=>`
       <div class="flashcard" onclick="this.classList.toggle('revealed')">
-        <div class="fc-q"><span class="qmark">?</span><span>${f[0]}</span></div>
-        <div class="fc-a"><span class="resp-label">R:</span>${f[1]}</div>
+        <div class="fc-q"><span class="qmark">?</span><span>${esc(f[0])}</span></div>
+        <div class="fc-a"><span class="resp-label">R:</span>${esc(f[1])}</div>
         <div class="fc-hint">toque para ver a resposta</div>
       </div>`).join('');
     const passosHtml = a.passos ? `
-        <div class="sec"><div class="sec-label" style="color:var(--vinho)">📋 Passo a passo</div>
-        <ol class="passos">${a.passos.map(p=>`<li>${p}</li>`).join('')}</ol></div>` : '';
+        <div class="sec"><div class="sec-label" style="color:var(--cor-primaria-esc)">📋 Passo a passo</div>
+        <ol class="passos">${a.passos.map(p=>`<li>${esc(p)}</li>`).join('')}</ol></div>` : '';
     const dadosLabel = a.dadosLabel || '📌 Números que caem na prova';
     card.innerHTML=`
       <div class="aula-head" onclick="toggleAula(this)">
-        <div class="aula-num">${a.n}</div>
-        <div class="aula-titulo">${a.titulo}</div>
+        <div class="aula-num">${esc(a.n)}</div>
+        <div class="aula-titulo">${esc(a.titulo)}</div>
         <div class="aula-check">✅</div>
         <div class="chevron">▾</div>
       </div>
       <div class="aula-body">
-        <div class="sec"><div class="sec-label" style="color:var(--vinho)">🔑 Frase-chave</div><div class="frase">${a.frase}</div></div>
-        <div class="sec"><div class="sec-label" style="color:var(--roxo)">🏠 Analogia do dia a dia</div><div class="analogia">${a.analogia}</div></div>
-        ${a.audio?`<div class="sec audio-box"><div class="sec-label" style="color:var(--azul)">🎧 Ouça este caso narrado</div><audio class="audio-caso" controls preload="none" src="${a.audio}"></audio></div>`:''}
-        <div class="sec"><div class="sec-label" style="color:var(--rosa)">💡 Conceitos essenciais</div><ul class="conceitos">${conceitosHtml}</ul></div>
+        <div class="sec"><div class="sec-label" style="color:var(--cor-primaria-esc)">🔑 Frase-chave</div><div class="frase">${esc(a.frase)}</div></div>
+        <div class="sec"><div class="sec-label" style="color:var(--cor-acento)">🏠 Analogia do dia a dia</div><div class="analogia">${esc(a.analogia)}</div></div>
+        ${a.audio?`<div class="sec audio-box"><div class="sec-label" style="color:var(--cor-alt)">🎧 Ouça este caso narrado</div><audio class="audio-caso" controls preload="none" src="${a.audio}"></audio></div>`:''}
+        <div class="sec"><div class="sec-label" style="color:var(--cor-primaria)">💡 Conceitos essenciais</div><ul class="conceitos">${conceitosHtml}</ul></div>
         ${passosHtml}
-        <div class="sec"><div class="sec-label" style="color:var(--verde)">${dadosLabel}</div><ul class="dados">${dadosHtml}</ul></div>
-        <div class="sec"><div class="sec-label" style="color:var(--rosa)">🧠 Teste-se (flashcards)</div>
+        <div class="sec"><div class="sec-label" style="color:var(--cor-ok)">${esc(dadosLabel)}</div><ul class="dados">${dadosHtml}</ul></div>
+        <div class="sec"><div class="sec-label" style="color:var(--cor-primaria)">🧠 Teste-se (flashcards)</div>
           <div class="fc-intro">Leia a pergunta, responda de cabeça, depois toque para conferir.</div>${flashHtml}</div>
         <button class="mark-btn" onclick="marcar('${k}',this)">${isStudied?'✓ Estudado — toque para desmarcar':'Marcar como estudado'}</button>
       </div>`;
@@ -492,18 +2816,18 @@ function durSlide(html,flash){ const len=html.replace(/<[^>]+>/g,'').length; let
 function buildSlides(p){
   const s=[];
   const add=(html,flash)=>s.push({html,dur:durSlide(html,flash)});
-  add(`<div class="slide-intro"><div class="slide-emoji">${p.emoji}</div><h1>${p.titulo}</h1><p>${p.desc||''}</p><div class="slide-hint">deixe tocar ▶ ou toque nas laterais da tela</div></div>`);
+  add(`<div class="slide-intro"><div class="slide-emoji">${esc(p.emoji)}</div><h1>${esc(p.titulo)}</h1><p>${esc(p.desc||'')}</p><div class="slide-hint">deixe tocar ▶ ou toque nas laterais da tela</div></div>`);
   p.blocos.forEach(b=>{
-    add(`<div class="slide-bloco"><div class="slide-kicker">Bloco</div><h2>${b.nome}</h2></div>`);
+    add(`<div class="slide-bloco"><div class="slide-kicker">Bloco</div><h2>${esc(b.nome)}</h2></div>`);
     b.aulas.forEach(a=>{
-      if(a.frase) add(`<div class="slide-card"><div class="slide-kicker">${a.titulo}</div><div class="slide-frase">🔑 ${a.frase}</div></div>`);
-      if(a.analogia) add(`<div class="slide-card"><div class="slide-kicker">Analogia</div><div class="slide-analogia">🏠 ${a.analogia}</div></div>`);
-      if(a.conceitos&&a.conceitos.length) add(`<div class="slide-card"><div class="slide-kicker">${a.titulo} · conceitos</div><ul class="slide-list">${a.conceitos.map(c=>`<li>${c}</li>`).join('')}</ul></div>`);
-      if(a.dados&&a.dados.length) add(`<div class="slide-card"><div class="slide-kicker">${a.dadosLabel||'Números'}</div><ul class="slide-dados">${a.dados.map(d=>`<li><b>${d[0]}</b> ${d[1]}</li>`).join('')}</ul></div>`);
-      (a.flash||[]).forEach(f=>add(`<div class="slide-card slide-flash"><div class="slide-kicker">Teste-se</div><div class="slide-q">❓ ${f[0]}</div><div class="slide-a">✅ ${f[1]}</div></div>`,true));
+      if(a.frase) add(`<div class="slide-card"><div class="slide-kicker">${esc(a.titulo)}</div><div class="slide-frase">🔑 ${esc(a.frase)}</div></div>`);
+      if(a.analogia) add(`<div class="slide-card"><div class="slide-kicker">Analogia</div><div class="slide-analogia">🏠 ${esc(a.analogia)}</div></div>`);
+      if(a.conceitos&&a.conceitos.length) add(`<div class="slide-card"><div class="slide-kicker">${esc(a.titulo)} · conceitos</div><ul class="slide-list">${a.conceitos.map(c=>`<li>${esc(c)}</li>`).join('')}</ul></div>`);
+      if(a.dados&&a.dados.length) add(`<div class="slide-card"><div class="slide-kicker">${esc(a.dadosLabel||'Números')}</div><ul class="slide-dados">${a.dados.map(d=>`<li><b>${esc(d[0])}</b> ${esc(d[1])}</li>`).join('')}</ul></div>`);
+      (a.flash||[]).forEach(f=>add(`<div class="slide-card slide-flash"><div class="slide-kicker">Teste-se</div><div class="slide-q">❓ ${esc(f[0])}</div><div class="slide-a">✅ ${esc(f[1])}</div></div>`,true));
     });
   });
-  add(`<div class="slide-intro"><div class="slide-emoji">✅</div><h1>Concluído</h1><p>Fim da aula. Bons estudos${NOME?(', '+NOME):''}.</p></div>`);
+  add(`<div class="slide-intro"><div class="slide-emoji">✅</div><h1>Concluído</h1><p>Fim da aula. Bons estudos.</p></div>`);
   return s;
 }
 function abrirAula(){
@@ -531,18 +2855,18 @@ function playPause(){ sPlaying=!sPlaying; if(sPlaying && sIdx>=slides.length-1) 
 function stageTap(e){ const w=window.innerWidth; if(e.clientX < w*0.32) slidePrev(); else slideNext(); }
 
 
-if(NOME && NOME.trim()){ document.getElementById('intro-h1').textContent='Estudos de '+NOME; }
 
 /* ===== Carrega o conteúdo do Supabase (banco alimentado pelo n8n) ===== */
 const SB_URL='{{SUPABASE_URL}}';
 const SB_KEY='{{SUPABASE_ANON_KEY}}';
 function fmtData(s){ const p=String(s).split('-'); return p[2]+'/'+p[1]; }
 async function carregarDados(){
+  if(SB_URL.includes('{{')){ renderSeletor(); return; }  /* modo demo: usa matérias de exemplo, sem backend */
   try{
     const h={apikey:SB_KEY,Authorization:'Bearer '+SB_KEY};
     const [provas,topicos]=await Promise.all([
-      fetch(SB_URL+'/rest/v1/provas?select=*&order=ordem.asc',{headers:h}).then(r=>r.json()),
-      fetch(SB_URL+'/rest/v1/topicos?select=*&order=ordem.asc',{headers:h}).then(r=>r.json())
+      fetch(SB_URL+'/rest/v1/provas?select=*&order=ordem.asc',{headers:h}).then(r=>r.ok?r.json():[]),
+      fetch(SB_URL+'/rest/v1/topicos?select=*&order=ordem.asc',{headers:h}).then(r=>r.ok?r.json():[])
     ]);
     if(!Array.isArray(provas)||!provas.length){ renderSeletor(); return; }
     const hoje=new Date().toISOString().slice(0,10);
